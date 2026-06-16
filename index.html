@@ -1,0 +1,1047 @@
+<!doctype html>
+<html lang="pl">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>BSKKOLOS</title>
+        <style>
+            :root {
+                /* Nowa paleta kolorów - Dark Mode */
+                --primary: #60a5fa; /* Jasny niebieski */
+                --primary-hover: #3b82f6;
+                --success: #22c55e; /* Soczysta zieleń */
+                --success-bg: #052e16; /* Ciemne tło dla sukcesu */
+                --success-border: #15803d;
+
+                --error: #f87171; /* Jasny czerwony */
+                --error-bg: #450a0a; /* Ciemne tło dla błędu */
+                --error-border: #b91c1c;
+
+                --bg: #0f172a; /* Bardzo ciemne tło strony (Slate 900) */
+                --card: #1e293b; /* Ciemne tło kart (Slate 800) */
+                --text-main: #f1f5f9; /* Prawie biały tekst */
+                --text-muted: #94a3b8; /* Szary tekst podrzędny */
+                --border: #334155; /* Kolor obramowań */
+                --input-bg: #020617; /* Tło inputów/przycisków opcji */
+            }
+
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background-color: var(--bg);
+                color: var(--text-main);
+                line-height: 1.6;
+                margin: 0;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding: 20px;
+                background: var(--card);
+                border-radius: 12px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+                border: 1px solid var(--border);
+            }
+
+            h1 {
+                margin: 0;
+                color: var(--primary);
+                font-size: 1.8rem;
+            }
+            p.subtitle {
+                color: var(--text-muted);
+                margin-top: 5px;
+            }
+
+            .quiz-controls {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                background: var(--card);
+                padding: 15px;
+                border-radius: 8px;
+                position: sticky;
+                top: 20px;
+                z-index: 10;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border);
+            }
+
+            .score-box {
+                font-weight: bold;
+                font-size: 1.2rem;
+            }
+            .score-val {
+                color: var(--primary);
+            }
+
+            .question-card {
+                background: var(--card);
+                padding: 25px;
+                margin-bottom: 20px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+                transition: transform 0.2s;
+                border: 1px solid var(--border);
+                border-left: 5px solid transparent;
+            }
+
+            .question-card.correct {
+                border-left-color: var(--success);
+            }
+            .question-card.wrong {
+                border-left-color: var(--error);
+            }
+            .question-card.partial {
+                border-left-color: var(--primary);
+            }
+
+            .q-header {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 15px;
+                color: var(--text-muted);
+                font-size: 0.9rem;
+                font-weight: bold;
+            }
+
+            .q-text {
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+                font-weight: 600;
+                color: var(--text-main);
+            }
+
+            .options-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .option-btn {
+                display: flex;
+                align-items: center;
+                padding: 12px 15px;
+                border: 2px solid var(--border);
+                border-radius: 8px;
+                cursor: pointer;
+                background: var(--input-bg);
+                transition: all 0.2s;
+                text-align: left;
+                position: relative;
+                color: var(--text-main);
+            }
+
+            .option-btn:hover {
+                background-color: #334155;
+                border-color: #64748b;
+            }
+
+            /* Styles for checked states */
+            input[type="radio"],
+            input[type="checkbox"] {
+                margin-right: 15px;
+                transform: scale(1.2);
+                accent-color: var(--primary);
+            }
+
+            /* Feedback styles - Adjusted for Dark Mode */
+            .option-btn.is-correct {
+                background-color: var(--success-bg);
+                border-color: var(--success-border);
+                color: #86efac; /* Light green text */
+            }
+
+            .option-btn.is-wrong {
+                background-color: var(--error-bg);
+                border-color: var(--error-border);
+                color: #fca5a5; /* Light red text */
+            }
+
+            .option-btn.should-be {
+                border-color: var(--success);
+                border-style: dashed;
+                color: var(--success);
+            }
+
+            /* Disabled state for inputs after checking */
+            input:disabled {
+                cursor: not-allowed;
+            }
+            .option-btn.disabled {
+                cursor: default;
+                opacity: 0.9;
+            }
+
+            .actions {
+                margin-top: 20px;
+                text-align: right;
+            }
+
+            button.check-btn {
+                background-color: var(--primary);
+                color: #0f172a; /* Dark text on bright button */
+                border: none;
+                padding: 10px 25px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 1rem;
+                transition: background 0.2s;
+            }
+
+            button.check-btn:hover {
+                background-color: var(--primary-hover);
+            }
+
+            /* Specific override for reset button to look dark grey */
+            button.reset-style {
+                background-color: #334155 !important;
+                color: white !important;
+            }
+            button.reset-style:hover {
+                background-color: #475569 !important;
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            /* LaTeX like formatting replacement */
+            .math {
+                font-family: "Times New Roman", serif;
+                font-style: italic;
+            }
+
+            /* Explanation styles */
+            .explanation-container {
+                margin-top: 15px;
+                padding-top: 10px;
+                border-top: 1px dashed var(--border);
+            }
+
+            .show-explanation-btn {
+                background-color: #4b5563;
+                color: var(--text-main);
+                border: none;
+                padding: 8px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: background 0.2s;
+                margin-right: 10px;
+            }
+
+            .show-explanation-btn:hover {
+                background-color: #6b7280;
+            }
+
+            .explanation-text {
+                margin-top: 12px;
+                padding: 15px;
+                background: #1a1a2e;
+                border-left: 3px solid var(--primary);
+                border-radius: 0 8px 8px 0;
+                color: #a5b4fc;
+                font-size: 0.95rem;
+                line-height: 1.6;
+                white-space: pre-wrap;
+            }
+
+            .explanation-text.hidden {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>BSK KOLOKWIUM NOWE PYTANIA</h1>
+                <p class="subtitle">
+                    Przygotowanie do kolokwium z BSK - Nauka poprzez quizy i interaktywne pytania!
+                </p>
+                <p class="subtitle">
+                     Termin: 16/17.06.2026
+                </p>
+                <p class="subtitle">
+                     Powodzenia wszystkim! 🍀
+                </p>
+            </header>
+
+            <div class="quiz-controls">
+                <div id="progress">Pytanie: 0 / 0</div>
+                <div class="score-box">
+                    Wynik: <span id="score" class="score-val">0</span>%
+                </div>
+                <button class="check-btn reset-style" onclick="resetQuiz()">
+                    Resetuj
+                </button>
+            </div>
+
+            <div id="quiz-container"></div>
+        </div>
+
+        <script>
+            // --- DANE WEJŚCIOWE (RAW DATA) ---
+            const rawData = `
+            [#1] Sygnały synchronizacyjne w łączu w dół
+            a) są wykorzystywane do synchronizacji pomiędzy stacjami eNB.
+            >>> b) są nadawane zawsze w środkowej części pasma systemu LTE i nie zajmują więcej niż 1.4 MHz.
+            c) są opcjonalnymi sygnałami zwiększającymi zasięg komórki LTE
+            >>> d) określają jednoznacznie PCI
+            e) są nadawane w całym paśmie systemu LTE
+            >>> f) są wykorzystywane do synchronizacji ramkowej systemu LTE
+
+            [#1] Wybierz protokoły wykorzystywane podczas komunikacji NAS
+            >>> a) SCTP
+            b) GTP
+            c) TCP
+            >>> d) S1-AP
+            >>> e) IP
+            f) UDP
+
+            [#1] RSRQ (reference signal received quality) w sieci LTE:
+            >>> a) doskonale nadaje się jako kryterium do wykonywania Handoverów ponieważ zależy od obciążenia komórki docelowej
+            b) to moc odbieranego przez terminal sygnału, który znajduje się w RE przeznaczonych na sygnały referencyjne w danej komórce.
+            c) nie zależy od obciążenia danej komórki
+            d) wraz ze wzrostem obciążenia komórki jego wartość wyraźnie rośnie
+            e) na podstawie jego wartości terminal może dokonać reselekcji z sieci LTE to GSM
+            >>> f) wraz ze wzrostem obciążenia komórki jego wartość wyraźnie spada
+
+            [#1] DCI (Downlink Control Information):
+            >>> a) Są dedykowane DCI służące wyłącznie do sterowania mocą.
+            >>> b) wykorzystują modulację QPSK i stałe kodowanie kanałowe.
+            c) Mogą zawierać alokacje zasobów w kanale DPDCH lub tzw. "uplink grant".
+            d) Są przesyłane w kanale DPCCH
+            e) mogą zawierać niewielkie ilość danych użytkownika
+            f) Są przesyłane w kanale DPDCH
+
+            [#1] Kiedy terminal wykonuje procedure Tracking Area Update w sieci LTE?
+            a) Gdy po wykonanym handoverze TAC aktualnej komórki jest inny TAC komórki źródłowej.
+            >>> b) Terminal wykonuje TAU periodycznie. Okres po jakim procedura ta powinna być wykonana jest określany parametrem.
+            >>> c) Terminal wykonuje Tracking Area Update po reselekcji do innej komórki gdy jej TAC jest inny niż w komórce źródłowej.
+            d) Po każdym wykonanym handoverze.
+            e) Tracking Area Update to procedura UMTS'owa. W sieci LTE terminal jej nie wykonuje.
+
+            [#1] Efekt ping-pong związany jest z procedurą:
+            >>> a) handover
+            b) attach
+            c) detach
+            d) cell reselection
+            e) E-RAB setup
+            f) registration
+
+            [#1] Channel State Information (CSI):
+            a) w trybie "open loop" zawierają dodatkowo RI
+            >>> b) są wysyłane periodycznie, dodatkowo na żądanie mogą być wysyłane aperiodycznie.
+            c) są zawsze wysyłane aperiodycznie
+            >>> d) w trybie "closed loop" zawierają dodatkowo PMI
+            >>> e) w trybie "closed loop" zawierają dodatkowo RI
+            f) są zawsze wysyłane periodycznie
+            >>> g) jest raportowany przez terminal do stacji bazowej
+            h) w trybie "open loop" zawierają dodatkowo PMI
+            i) jest raportowany przez stację bazową do terminala
+
+            [#1] Aggregation Level kanału DPCCH to:
+            >>> a) jego wysoka wartość świadczy o złych warunkach radiowych.
+            >>> b) liczba CCE, na którą skałada się dany DCI
+            c) to najmniejsza jednostka sygnalizacyjna, która może zostać przesłana w łączu "w dół".
+            >>> d) W łączu "w dół" może wynosić 1, 2, 4 lub 8.
+            e) jego wysoka wartość świadczy o dobrych warunkach radiowych.
+            f) to najmniejsza jednostka sygnalizacyjna, która może zostać przesłana w łączu "w górę".
+
+            [#1] Zaznacz zmienne wykorzystywane w sieciach LTE do potwierdzenia tożsamości sieci podczas procedury Attach
+            >>> a) AUTN
+            >>> b) RAND
+            c) XRES
+            d) RES
+            e) Sieć LTE nie umożliwia potwierdzenia tożsamości sieci
+
+            [#1] "Smart Admission Control" w systemie LTE to:
+            a) AC w systemie LTE jest tak proste, że zawsze jest "Smart"
+            b) technika, która bierze pod uwagę tylko liczbę aktywnych bearerów w komórce.
+            c) technika, która bierze pod uwagę nie tylko liczbę aktywnych bearerów w komórce, ale również ilość zasobów radiowych wymaganych przez dopuszczone połączenie.
+            d) Dedykowana technika dla terminali typu Smartphone
+            >>> e) technika, która bierze pod uwagę między innymi ilość zasobów radiowych wymaganych przez dopuszczone połączenie oraz tych dostępnych w systemie
+            f) technika AC, która bierze pod uwagę nie tylko liczbę użytkowników w komórce, ale również liczę bearerów.
+
+            [#1] Procedura Paging inicjowana jest przez
+            a) UE w stanie ECM-IDLE
+            b) UE w stanie ECM-CONNECTED
+            c) eNB
+            >>> d) MME
+
+            [#1] RSRP (reference signal received power) w sieci LTE:
+            a) to tylko i wyłącznie moc odbieranych przez terminal sygnałów referencyjnych
+            >>> b) to moc odbieranego przez terminal sygnału, który znajduje się w RE przeznaczonych na sygnały referencyjne w danej komórce.
+            c) wraz ze wzrostem liczby użytkowników w komórce jego wartość wyraźnie spada
+            d) wraz ze wzrostem liczby użytkowników w komórce jego wartość wyraźnie rośnie
+            >>> e) nie zależy od obciążenia danej komórki
+
+            [#1] Process HARQ:
+            a) jest mechanizmem zapewniającym absolutnie bezbłędną transmisję w sieci LTE
+            >>> b) W łączu "w dół" jest asynchroniczny
+            c) W łączu "w dół" jest synchroniczny
+            >>> d) zapewnia szybkie retransmisje błędnie odebranych bloków danych na poziomie warstwy MAC
+            e) W łączu "w górę" jest asynchroniczny
+            >>> f) terminal może mieć aktywnych wiele procesów HARQ
+            g) jest mechanizmem kontroli poprawności transmisji na poziomie warstwy RLC
+            >>> h) W łączu "w górę" jest synchroniczny
+            i) terminal może mieć aktywny co najwyżej jeden proces HARQ
+
+            [#1] W jaki sposób konfigurowane są pomiary, które terminal powinien wykonywać:
+            a) Telefon decyduje o tym jakie pomiary będzie przeprowadzać oraz informuje o tym stacje bazowa poprzez wiadomość RRC Measurement Report
+            b) Mogą być konfigurowane w dowolnym momencie poprzez wiadomość RRC Connection Setup
+            >>> c) Mogą być konfigurowane w dowolnym momencie poprzez wiadomość RRC Connection Reconfiguration
+            d) Konfiguracja pomiarów jest zestandaryzowana i terminal nie musi być o niej informowany.
+            e) Konfiguracja pomiarów przesyłana jest do terminala w postaci wiadomości SIB
+            f) Tylko raz, podczas przyłączania telefonu do stacji bazowej
+
+            [#1] UCI (Uplink Control Information):
+            a) Zawierają tylko i wyłącznie potwierdzenia HARQ oraz informacje CSI.
+            b) Są przesyłane tylko i wyłącznie w kanale PUCCH.
+            c) Nie mogą być przesyłane w kanale DPDCH, ponieważ ten kanał należy do "user plane" a nie do "control plane".
+            >>> d) Mogą być również przesyłane w kanale DPDCH.
+            >>> e) Są przesyłane w kanale PUCCH.
+            f) Są opcjonalną formą sygnalizacji poprawiającą jakość transmisji w łączu "w górę".
+            >>> g) W zależności od formatu mogą zawierać potwierdzenia HARQ, informacje CSI oraz SR.
+            h) Informują stację bazową o modulacji u rodzaju kodowania wykorzystywanego przez terminal w łączy "w górę".
+
+            [#1] Jaka jest różnica pomiędzy Localized a Clustered SC-FDMA?
+            >>> a) To jest zadanie otwarte. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć odpowiedź.
+            ::
+            Localized (LFDMA):
+            • podnośne przydzielone UE są skupione w jednym ciągłym bloku widma, UE zajmuje sąsiadujące ze sobą subcarriery
+            • zalety: umożliwia frequency selective scheduling (scheduler może przydzielić UE fragment widma z najlepszym kanałem), mniejsze interferencje między użytkownikami
+            • wady: podatność na fading, mniejsze frequency diversity
+            
+            Clustered (DFDMA):
+            • podnośne przydzielone UE są równomiernie rozłożone w całym paśmie, UE zajmuje co N-tą podnośną
+            • zalety: sygnał rozłożony po całym paśmie, odporniejszy na selektywne zaniki kanału
+            • wady: brak frequency selective scheduling, trudniejsza koordynacja między UE
+
+            [#1] Dlaczego w trybie TDD potrzebna jest podramka Special Subframe?
+            >>> a) To jest zadanie otwarte. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć odpowiedź.
+            ::
+            W trybie TDD uplink i downlink współdzielą tę samą częstotliwość, dlatego przy zmianie kierunku transmisji konieczny jest czas ochronny - stąd potrzeba Special Subframe.
+            
+            Sygnał wysłany przez eNB dociera do odległego UE z pewnym opóźnieniem. Gdyby eNB natychmiast zaczął odbierać, sygnały od dalekich UE mogłyby jeszcze "być w drodze" i powodować interferencje. Ponadto czas przestawienia sprzętu radiowego - wzmacniacze i przełączniki antenowe potrzebują chwili na zmianę kierunku pracy.
+            
+            Podramka Special Subframe składa się z trzech pól: DwPTS (końcówka transmisji downlink), GP (Guard Period - cisza radiowa) oraz UpPTS (początek transmisji uplink, np. SRS).
+            
+            Długość GP determinuje maksymalny zasięg komórki - im większy zasięg, tym dłuższy GP jest wymagany.
+
+            [#1] Wytłumacz różnicę między "default bearer" a "dedicated bearer".
+            >>> a) To jest zadanie otwarte. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć odpowiedź.
+            ::
+            Default bearer:
+            • Tworzony automatycznie przy attach do sieci.
+            • Istnieje przez cały czas połączenia z siecią.
+            • Non-GBR - brak gwarantowanego bitrate.
+            • Jeden na APN, zapewnia podstawową łączność IP (QCI zazwyczaj = 9, best effort).
+            
+            Dedicated Bearer:
+            • Tworzony na żądanie (przez sieć lub UE) dla konkretnej usługi.
+            • Powiązany z istniejącym default bearerem (ten sam APN).
+            • Może być GBR lub Non-GBR.
+            • Niesie TFT (Traffic Flow Template) - filtr określający który ruch idzie tym bearerem.
+            
+            W skrócie: default bearer = droga ogólna, dedicated bearer = dedykowany pas ruchu z gwarantowaną przepustowością dla konkretnej aplikacji.
+
+            [#1] Stacja nadawcza nadaje sygnał komórki LTE z mocą wyjściową 40W oraz dwóch komórek CDMA z mocą 43dBm każda. Do wyjścia antenowego głowicy radiowej dokręcony jest tłumik 30dB. Jaka jest całkowita moc na wyjsciu tłumika (w Watach i dBm)?
+            >>> a) To jest zadanie obliczeniowe. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć rozwiązanie.
+            ::
+            1. Konwersja mocy LTE na dBm:
+            40 W ≈ 46 dBm (bo 10 W to 40 dBm, dwa razy więcej czyli 20 W to 43 dBm, i kolejne podwojenie to 40 W czyli 46 dBm).
+            
+            2. Sumowanie mocy:
+            Dwa razy 43 dBm = 46 dBm (20 W + 20 W = 40 W).
+            Razem: 46 dBm (LTE) + 46 dBm (z dwóch CDMA) = 80 W.
+            80 W to 49 dBm (ponownie: podwojenie 40 W daje +3 dB do 46 dBm).
+            
+            3. Uwzględnienie tłumika:
+            49 dBm - 30 dB = 19 dBm.
+            
+            4. Przeliczenie wyniku na Waty:
+            Zmniejszenie o 30 dB oznacza tysiąckrotny spadek mocy.
+            80 W / 1000 = 0.08 W = 80 mW.
+
+            [#1] Opisz w jaki sposób technologia LTE niweluje negatywny wpływ propagacji wielodrogowej.
+            >>> a) To jest zadanie otwarte. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć odpowiedź.
+            ::
+            1. LTE wykorzystuje modulację OFDM, która dzieli szeroki kanał na wiele wąskich podnośnych, a na każdej z nich symbol trwa długo, co samo w sobie łagodzi opóźnienia ech wielodrogowych.
+            2. Do każdego symbolu dodawany jest cykliczny prefix (CP) pochłaniający echa wielodrogowe przed ich dotarciem do właściwego symbolu (chroni przed interferencjami międzysymbolowymi - ISI).
+            3. Estymacja kanału - UE wykorzystuje sygnały referencyjne i na ich podstawie estymuje charakterystykę kanału, a equalizer koryguje fazę i amplitudę każdej podnośnej.
+            4. MIMO - wykorzystuje sygnały wielodrogowe do zwiększenia przepustowości (spatial multiplexing) lub do poprawy niezawodności (diversity).
+
+            [#1] Podaj ile bearerów potrzeba do zestawienia połączenia video, wymień je i opisz do czego poszczególne bearery są wykorzystywane.
+            >>> a) To jest zadanie otwarte. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć odpowiedź.
+            ::
+            Potrzeba minimum 3 bearerów:
+            • Default bearer (Non-GBR) - tworzony przy attach, zawsze aktywny, przenosi sygnalizację SIP, kontroluje połączenie wideo (ale nie samo wideo).
+            • Dedicated bearer Audio (GBR) - tworzony po negocjacji SIP, przenosi strumień głosowy RTP, gwarantuje bitrate i niską latencję, a TFT filtruje ruch po portach RTP dla audio.
+            • Dedicated bearer Video (GBR) - oddzielny dla strumienia wideo RTP, zapewnia stabilny bitrate dla obrazu, a TFT filtruje ruch po portach RTP dla wideo.
+
+            [#1] Wymień najważniejsze funkcje MME.
+            >>> a) To jest zadanie otwarte. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć odpowiedź.
+            ::
+            • Bezpieczeństwo i uwierzytelnianie (zarządzanie szyfrowaniem, weryfikacja tożsamości UE).
+            • Zarządzanie tożsamością (przydzielanie GUTI, ukrywanie IMSI w sieci radiowej).
+            • Zarządzanie mobilnością (obsługa TAU, handover, przejścia idle-connected).
+            • Zarządzanie sesjami/bearerami (wybór SGW i PGW dla UE, koordynacja tworzenia bearerów).
+            • Paging (śledzenie UE w trybie idle).
+            • Roaming (współpraca z MME innych sieci).
+
+            [#1] Wymień najważniejsze wady i zalety techniki OFDMA.
+            >>> a) To jest zadanie otwarte. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć odpowiedź.
+            ::
+            Zalety:
+            • Odporność na wielodrogowość (długi czas symbolu eliminuje ISI).
+            • Elastyczna alokacja zasobów (różni użytkownicy = różne podnośne).
+            • Wysoka efektywność widmowa.
+            • Proste przetwarzanie sygnału za pomocą FFT/IFFT.
+            • Kompatybilność z MIMO.
+            
+            Wady:
+            • Wymaga precyzyjnej synchronizacji.
+            • Overhead cyklicznego prefixu powoduje zmniejszenie przepustowości.
+            • Wysoki PAPR (wymaga drogich, liniowych wzmacniaczy mocy i szybciej zużywa baterię).
+
+            [#1] Wymień najważniejsze funkcje PCRF.
+            >>> a) To jest zadanie otwarte. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć odpowiedź.
+            ::
+            • Sterowanie polityką (reguły PCC dla każdej sesji, QoS dla połączeń).
+            • QoS Authorization (autoryzacja parametrów QoS, dopasowanie QoS do profilu subskrybenta).
+            • Zarządzanie rozliczaniem (określa taryfikację usług).
+            • Tworzenie dedykowanych bearerów z odpowiednim QoS np. dla VoLTE.
+            • Zmiana reguł sesji w jej trakcie bez jej zrywania (reakcja na przeciążenia, zmianę lokalizacji UE).
+
+            [#1] Wymień najważniejsze wady i zalety techniki SC-FDMA.
+            >>> a) To jest zadanie otwarte. Zaznacz tę opcję i kliknij "Sprawdź", aby rozwinąć odpowiedź.
+            ::
+            Zalety:
+            • Niski współczynnik PAPR (co daje dłuższy czas pracy na baterii w telefonie oraz mniejsze szczyty mocy).
+            • Odporność na wielodrogowość (wykorzystuje CP tak jak w OFDMA).
+            • Elastyczna alokacja zasobów (w blokach RB).
+            
+            Wady:
+            • Ograniczona elastyczność alokacji (podnośne muszą być przydzielone jako ciągły blok, co utrudnia frequency selective scheduling).
+            • Większa złożoność odbiornika (wymaga equalizacji FDE po stronie eNB).
+            • Wymaga precyzyjnej synchronizacji częstotliwości.
+`;
+
+            // --- LOGIKA APLIKACJI ---
+
+            function cleanText(text) {
+                return text
+                    .replace(/lambda/gi, "λ")
+                    .replace(/deg/gi, "°")
+                    .replace(/sqrt/gi, "√")
+                    .replace(/ohm/gi, "Ω")
+                    .replace(/alpha/gi, "α")
+                    .replace(/beta/gi, "β");
+            }
+
+            // Fisher-Yates shuffle
+            function shuffleArray(array) {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+
+            function parseData(data) {
+                const questions = [];
+                // Split by [#1] marker
+                const blocks = data
+                    .split(/\[#1\]/)
+                    .filter((x) => x.trim().length > 0);
+
+                console.group("📋 PARSOWANIE PYTAŃ - RAPORT");
+                console.log(`Znaleziono ${blocks.length} bloków [Q]`);
+
+                blocks.forEach((content, idx) => {
+                    const blockNum = idx + 1;
+                    const previewText =
+                        content.substring(0, 80).replace(/\n/g, " ").trim() +
+                        "...";
+
+                    // Check for explanation (after :: separator)
+                    let mainContent = content;
+                    let explanation = "";
+                    const explanationMatch = content.split(/\n::\s*/);
+                    if (explanationMatch.length > 1) {
+                        mainContent = explanationMatch[0];
+                        explanation = cleanText(
+                            explanationMatch.slice(1).join("\n").trim(),
+                        );
+                    }
+
+                    // Split content into Question and Answers
+                    // Find first occurrence of A) or a) - POPRAWIONE REGEX
+                    // Obsługuje: a), >>a), >>>a), >a), >>>>a) itd.
+                    const match = mainContent.match(
+                        /(\n|^)\s*(>{1,4})?\s*[a-zA-Z]\)/,
+                    );
+                    if (!match) {
+                        console.warn(
+                            `⚠️ Blok #${blockNum} POMINIĘTY - brak odpowiedzi (nie znaleziono wzorca "a)" lub ">>>a)")`,
+                        );
+                        console.warn(`   Treść: "${previewText}"`);
+                        console.warn(
+                            `   Pełna treść bloku:`,
+                            mainContent.substring(0, 300),
+                        );
+                        return;
+                    }
+
+                    // ZACHOWAJ PRZEJŚCIA DO NOWEJ LINII W PYTANIU
+                    const qText = mainContent.substring(0, match.index);
+                    // Usuń puste linie na początku i końcu, ale zachowaj wewnętrzne przejścia
+                    const qTextClean = qText
+                        .replace(/^\s*\n/, "")
+                        .replace(/\n\s*$/, "");
+
+                    const answersBlock = mainContent.substring(match.index);
+
+                    const answers = [];
+                    const skippedLines = [];
+
+                    // NOWY ALGORYTM: Łączy wieloliniowe odpowiedzi
+                    // Regex do wykrycia początku odpowiedzi: opcjonalne > + litera + )
+                    const answerStartRegex = /^(>{0,4})\s*([a-zA-Z])\)/;
+
+                    const lines = answersBlock.split(/\n/);
+                    let currentAnswer = null;
+
+                    lines.forEach((line, lineIdx) => {
+                        const trimmedLine = line.trim();
+                        if (trimmedLine.length === 0) {
+                            // Pusta linia - NIE dodawaj przejścia do nowej linii
+                            // (puste linie są separatorami między odpowiedziami, nie częścią odpowiedzi)
+                            return;
+                        }
+
+                        const answerMatch = trimmedLine.match(answerStartRegex);
+
+                        if (answerMatch) {
+                            // To jest początek nowej odpowiedzi
+                            // Zapisz poprzednią odpowiedź jeśli istnieje (po usunięciu trailing whitespace)
+                            if (currentAnswer !== null) {
+                                currentAnswer.text = currentAnswer.text.replace(
+                                    /\s+$/,
+                                    "",
+                                );
+                                answers.push(currentAnswer);
+                            }
+
+                            const arrows = answerMatch[1];
+                            const isCorrect = arrows.length >= 2; // >> lub więcej = poprawna
+                            const answerText = trimmedLine
+                                .replace(answerStartRegex, "")
+                                .trim();
+
+                            currentAnswer = {
+                                text: cleanText(answerText),
+                                correct: isCorrect,
+                                originalLine: trimmedLine,
+                            };
+                        } else if (
+                            currentAnswer !== null &&
+                            !trimmedLine.startsWith("::")
+                        ) {
+                            // To jest kontynuacja poprzedniej odpowiedzi (wieloliniowa)
+                            // Zachowaj przejście do nowej linii
+                            currentAnswer.text += "\n" + cleanText(trimmedLine);
+                            currentAnswer.originalLine += "\n" + trimmedLine;
+                        } else if (
+                            trimmedLine.length > 3 &&
+                            !trimmedLine.startsWith("::")
+                        ) {
+                            // Linia przed pierwszą odpowiedzią lub po komentarzu
+                            skippedLines.push({ lineIdx, line: trimmedLine });
+                        }
+                    });
+
+                    // Dodaj ostatnią odpowiedź (po usunięciu trailing whitespace)
+                    if (currentAnswer !== null) {
+                        currentAnswer.text = currentAnswer.text.replace(
+                            /\s+$/,
+                            "",
+                        );
+                        answers.push(currentAnswer);
+                    }
+
+                    if (answers.length === 0) {
+                        console.warn(
+                            `⚠️ Blok #${blockNum} POMINIĘTY - nie znaleziono żadnych odpowiedzi`,
+                        );
+                        console.warn(`   Treść pytania: "${previewText}"`);
+                        console.warn(
+                            `   Blok odpowiedzi:`,
+                            answersBlock.substring(0, 200),
+                        );
+                        return;
+                    }
+
+                    const correctAnswers = answers.filter((a) => a.correct);
+                    if (correctAnswers.length === 0) {
+                        console.warn(
+                            `⚠️ Blok #${blockNum} - BRAK POPRAWNYCH ODPOWIEDZI (brak >> lub >>> przed odpowiedzią)`,
+                        );
+                        console.warn(`   Treść: "${previewText}"`);
+                        console.warn(
+                            `   Znalezione odpowiedzi:`,
+                            answers.map((a) => a.originalLine.substring(0, 50)),
+                        );
+                    }
+
+                    if (skippedLines.length > 0) {
+                        console.info(
+                            `ℹ️ Blok #${blockNum} - pominięte linie (komentarze?):`,
+                            skippedLines,
+                        );
+                    }
+
+                    // Shuffle answers
+                    const shuffledAnswers = shuffleArray(answers);
+                    // Assign new letters A, B, C...
+                    shuffledAnswers.forEach((ans, i) => {
+                        ans.id = String.fromCharCode(65 + i); // A, B, C, D...
+                    });
+
+                    questions.push({
+                        text: cleanText(qTextClean), // Zachowuje przejścia do nowej linii
+                        answers: shuffledAnswers,
+                        type:
+                            shuffledAnswers.filter((a) => a.correct).length > 1
+                                ? "multi"
+                                : "single",
+                        explanation: explanation,
+                        blockNumber: blockNum,
+                    });
+
+                    console.log(
+                        `✅ Blok #${blockNum} OK - ${answers.length} odp., ${correctAnswers.length} poprawnych, typ: ${questions[questions.length - 1].type}`,
+                    );
+                });
+
+                console.log(`\n📊 PODSUMOWANIE PARSOWANIA:`);
+                console.log(`   Bloków [Q]: ${blocks.length}`);
+                console.log(`   Sparsowanych pytań: ${questions.length}`);
+                console.log(
+                    `   Pominiętych: ${blocks.length - questions.length}`,
+                );
+
+                // POPRAWIONE: Usuwanie duplikatów na podstawie tytułu ORAZ odpowiedzi
+                // Jeśli chociaż jedna odpowiedź się różni - pytanie jest unikalne
+                const uniqueQuestions = [];
+                const seenSignatures = new Set();
+                const duplicates = [];
+
+                questions.forEach((q) => {
+                    // Twórz sygnaturę z tytułu + posortowanych odpowiedzi
+                    const titlePart = q.text
+                        .toLowerCase()
+                        .replace(/\s+/g, " ")
+                        .trim();
+                    const answersPart = q.answers
+                        .map((a) =>
+                            a.text.toLowerCase().replace(/\s+/g, " ").trim(),
+                        )
+                        .sort()
+                        .join("|");
+                    const signature = titlePart + "|||" + answersPart;
+
+                    if (!seenSignatures.has(signature)) {
+                        seenSignatures.add(signature);
+                        uniqueQuestions.push(q);
+                    } else {
+                        duplicates.push({
+                            blockNumber: q.blockNumber,
+                            text: q.text.substring(0, 60),
+                        });
+                    }
+                });
+
+                if (duplicates.length > 0) {
+                    console.log(
+                        `\n🔄 DUPLIKATY (usunięte - identyczny tytuł I odpowiedzi):`,
+                    );
+                    duplicates.forEach((d) =>
+                        console.log(
+                            `   Blok #${d.blockNumber}: "${d.text}..."`,
+                        ),
+                    );
+                }
+
+                console.log(
+                    `\n✨ FINALNA LICZBA PYTAŃ: ${uniqueQuestions.length}`,
+                );
+                console.groupEnd();
+
+                // Shuffle questions order
+                return shuffleArray(uniqueQuestions);
+            }
+
+            // Funkcja pomocnicza do konwersji tekstu z \n na <br> dla HTML
+            function textToHtml(text) {
+                return text
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/\n/g, "<br>");
+            }
+
+            let allQuestions = [];
+            let totalScore = 0;
+            let answeredCount = 0;
+
+            function renderQuiz() {
+                allQuestions = parseData(rawData);
+                const container = document.getElementById("quiz-container");
+                container.innerHTML = "";
+
+                document.getElementById("progress").innerText =
+                    `Pytania: 0 / ${allQuestions.length}`;
+
+                allQuestions.forEach((q, index) => {
+                    const card = document.createElement("div");
+                    card.className = "question-card";
+                    card.id = `q-card-${index}`;
+
+                    const inputType = q.type === "multi" ? "checkbox" : "radio";
+                    const typeLabel =
+                        q.type === "multi" ? "(Wielokrotny wybór)" : "";
+
+                    let answersHtml = "";
+                    q.answers.forEach((ans, aIndex) => {
+                        // Zachowuje przejścia do nowej linii w odpowiedziach
+                        answersHtml += `
+                <label class="option-btn" id="lbl-${index}-${aIndex}">
+                    <input type="${inputType}" name="q${index}" value="${aIndex}">
+                    <span><b>${ans.id})</b> ${textToHtml(ans.text)}</span>
+                </label>
+            `;
+                    });
+
+                    // Zmieniono: dodano przycisk "Sprawdź" widoczny od razu
+                    // Dodano przycisk wyjaśnienia jeśli istnieje
+                    let explanationHtml = "";
+                    if (q.explanation) {
+                        explanationHtml = `
+                <div class="explanation-container" id="expl-container-${index}" style="display: none;">
+                    <button class="show-explanation-btn" onclick="toggleExplanation(${index})">💡 Pokaż wyjaśnienie</button>
+                    <div class="explanation-text hidden" id="expl-text-${index}">${q.explanation}</div>
+                </div>
+            `;
+                    }
+
+                    card.innerHTML = `
+            <div class="q-header">
+                <span>Pytanie ${index + 1}</span>
+                <span>${typeLabel}</span>
+            </div>
+            <div class="q-text">${textToHtml(q.text)}</div>
+            <div class="options-grid">
+                ${answersHtml}
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-${index}" onclick="checkAnswer(${index})">Sprawdź</button>
+            </div>
+            ${explanationHtml}
+        `;
+                    container.appendChild(card);
+                });
+            }
+
+            function checkAnswer(qIndex) {
+                const q = allQuestions[qIndex];
+                const card = document.getElementById(`q-card-${qIndex}`);
+                const inputs = document.querySelectorAll(
+                    `input[name="q${qIndex}"]`,
+                );
+                const btn = document.getElementById(`btn-check-${qIndex}`);
+
+                let allCorrect = true;
+                let anySelected = false;
+
+                // Najpierw sprawdzamy czy cokolwiek zaznaczono
+                inputs.forEach((input) => {
+                    if (input.checked) anySelected = true;
+                });
+
+                if (!anySelected) return; // Jeśli nic nie zaznaczono, nie sprawdzaj
+
+                inputs.forEach((input) => {
+                    const ansIndex = parseInt(input.value);
+                    const label = document.getElementById(
+                        `lbl-${qIndex}-${ansIndex}`,
+                    );
+                    const isCorrect = q.answers[ansIndex].correct;
+
+                    // Reset styles
+                    label.classList.remove(
+                        "is-correct",
+                        "is-wrong",
+                        "should-be",
+                    );
+
+                    if (input.checked) {
+                        if (isCorrect) {
+                            label.classList.add("is-correct");
+                        } else {
+                            label.classList.add("is-wrong");
+                            allCorrect = false;
+                        }
+                    }
+
+                    // Blokujemy zmianę odpowiedzi po sprawdzeniu
+                    input.disabled = true;
+                    label.classList.add("disabled");
+                });
+
+                // Show missing correct answers
+                inputs.forEach((input) => {
+                    const ansIndex = parseInt(input.value);
+                    const label = document.getElementById(
+                        `lbl-${qIndex}-${ansIndex}`,
+                    );
+                    const isCorrect = q.answers[ansIndex].correct;
+
+                    if (isCorrect && !input.checked) {
+                        label.classList.add("should-be");
+                        allCorrect = false;
+                    }
+                });
+
+                // Obliczanie wyniku zgodnie z nowymi zasadami
+                let score = 0;
+                if (q.type === "multi") {
+                    const correctAnswersCount = q.answers.filter((a) => a.correct).length;
+                    let correctChecked = 0;
+                    let incorrectChecked = 0;
+
+                    inputs.forEach((input) => {
+                        const ansIndex = parseInt(input.value);
+                        const isCorrect = q.answers[ansIndex].correct;
+                        if (input.checked) {
+                            if (isCorrect) {
+                                correctChecked++;
+                            } else {
+                                incorrectChecked++;
+                            }
+                        }
+                    });
+
+                    if (correctAnswersCount > 0) {
+                        score = Math.max(0, (correctChecked - incorrectChecked) / correctAnswersCount);
+                    }
+                } else {
+                    // Pojedynczy wybór
+                    let gotItRight = false;
+                    inputs.forEach((input) => {
+                        const ansIndex = parseInt(input.value);
+                        const isCorrect = q.answers[ansIndex].correct;
+                        if (input.checked && isCorrect) {
+                            gotItRight = true;
+                        }
+                    });
+                    score = gotItRight ? 1 : 0;
+                }
+                q.score = score;
+
+                // Nadanie odpowiednich klas wizualnych
+                if (q.score === 1) {
+                    card.classList.add("correct");
+                    card.classList.remove("wrong", "partial");
+                } else if (q.score > 0) {
+                    card.classList.add("partial");
+                    card.classList.remove("correct", "wrong");
+                } else {
+                    card.classList.add("wrong");
+                    card.classList.remove("correct", "partial");
+                }
+
+                // Dodanie informacji o punktacji do nagłówka pytania
+                const qHeaderSpan = card.querySelector('.q-header span:first-child');
+                if (qHeaderSpan) {
+                    let scoreColor = 'var(--error)';
+                    if (q.score === 1) {
+                        scoreColor = 'var(--success)';
+                    } else if (q.score > 0) {
+                        scoreColor = 'var(--primary)';
+                    }
+                    const formattedScore = Number(q.score.toFixed(2));
+                    qHeaderSpan.innerHTML += ` <span style="color: ${scoreColor}; font-weight: bold;">(${formattedScore}/1 pkt)</span>`;
+                }
+
+                // Ukrywamy przycisk po sprawdzeniu
+                btn.style.display = "none";
+
+                // Pokazujemy kontener z wyjaśnieniem (jeśli istnieje)
+                const explContainer = document.getElementById(
+                    `expl-container-${qIndex}`,
+                );
+                if (explContainer) {
+                    explContainer.style.display = "block";
+                }
+
+                updateScore();
+            }
+
+            function toggleExplanation(qIndex) {
+                const explText = document.getElementById(`expl-text-${qIndex}`);
+                const btn = document.querySelector(
+                    `#expl-container-${qIndex} .show-explanation-btn`,
+                );
+
+                if (explText.classList.contains("hidden")) {
+                    explText.classList.remove("hidden");
+                    btn.textContent = "🔽 Ukryj wyjaśnienie";
+                } else {
+                    explText.classList.add("hidden");
+                    btn.textContent = "💡 Pokaż wyjaśnienie";
+                }
+            }
+
+            function updateScore() {
+                let totalScore = 0;
+                let attempted = 0;
+
+                allQuestions.forEach((q) => {
+                    if (q.score !== undefined) {
+                        totalScore += q.score;
+                        attempted++;
+                    }
+                });
+
+                const percent =
+                    attempted === 0
+                        ? 0
+                        : Math.round((totalScore / attempted) * 100);
+                document.getElementById("score").innerText = percent;
+                document.getElementById("progress").innerText =
+                    `Odpowiedziano: ${attempted} / ${allQuestions.length}`;
+            }
+
+            function resetQuiz() {
+                renderQuiz();
+                document.getElementById("score").innerText = "0";
+                window.scrollTo(0, 0);
+            }
+
+            // Start
+            renderQuiz();
+        </script>
+    </body>
+</html>
