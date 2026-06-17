@@ -1,0 +1,3618 @@
+<!DOCTYPE html>
+<html lang="pl"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BSKZEROWKA</title>
+        <style>
+            :root {
+                /* Nowa paleta kolorów - Dark Mode */
+                --primary: #60a5fa; /* Jasny niebieski */
+                --primary-hover: #3b82f6;
+                --success: #22c55e; /* Soczysta zieleń */
+                --success-bg: #052e16; /* Ciemne tło dla sukcesu */
+                --success-border: #15803d;
+
+                --error: #f87171; /* Jasny czerwony */
+                --error-bg: #450a0a; /* Ciemne tło dla błędu */
+                --error-border: #b91c1c;
+
+                --warning: #fb923c; /* Jasny pomarańczowy */
+                --warning-bg: #431407; /* Ciemne tło dla częściowej */
+                --warning-border: #c2410c;
+
+                --bg: #0f172a; /* Bardzo ciemne tło strony (Slate 900) */
+                --card: #1e293b; /* Ciemne tło kart (Slate 800) */
+                --text-main: #f1f5f9; /* Prawie biały tekst */
+                --text-muted: #94a3b8; /* Szary tekst podrzędny */
+                --border: #334155; /* Kolor obramowań */
+                --input-bg: #020617; /* Tło inputów/przycisków opcji */
+            }
+
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background-color: var(--bg);
+                color: var(--text-main);
+                line-height: 1.6;
+                margin: 0;
+                padding: 20px;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding: 20px;
+                background: var(--card);
+                border-radius: 12px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+                border: 1px solid var(--border);
+            }
+
+            h1 {
+                margin: 0;
+                color: var(--primary);
+                font-size: 1.8rem;
+            }
+            p.subtitle {
+                color: var(--text-muted);
+                margin-top: 5px;
+            }
+
+            .quiz-controls {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                background: var(--card);
+                padding: 15px;
+                border-radius: 8px;
+                position: sticky;
+                top: 20px;
+                z-index: 10;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border);
+            }
+
+            .score-box {
+                font-weight: bold;
+                font-size: 1.2rem;
+            }
+            .score-val {
+                color: var(--primary);
+            }
+
+            .question-card {
+                background: var(--card);
+                padding: 25px;
+                margin-bottom: 20px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+                transition: transform 0.2s;
+                border: 1px solid var(--border);
+                border-left: 5px solid transparent;
+            }
+
+            .question-card.correct {
+                border-left-color: var(--success);
+            }
+            .question-card.wrong {
+                border-left-color: var(--error);
+            }
+            .question-card.partial {
+                border-left-color: var(--warning);
+            }
+
+            .q-header {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 15px;
+                color: var(--text-muted);
+                font-size: 0.9rem;
+                font-weight: bold;
+            }
+
+            .q-text {
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+                font-weight: 600;
+                color: var(--text-main);
+            }
+
+            .options-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .option-btn {
+                display: flex;
+                align-items: center;
+                padding: 12px 15px;
+                border: 2px solid var(--border);
+                border-radius: 8px;
+                cursor: pointer;
+                background: var(--input-bg);
+                transition: all 0.2s;
+                text-align: left;
+                position: relative;
+                color: var(--text-main);
+            }
+
+            .option-btn:hover {
+                background-color: #334155;
+                border-color: #64748b;
+            }
+
+            /* Styles for checked states */
+            input[type="radio"],
+            input[type="checkbox"] {
+                margin-right: 15px;
+                transform: scale(1.2);
+                accent-color: var(--primary);
+            }
+
+            /* Feedback styles - Adjusted for Dark Mode */
+            .option-btn.is-correct {
+                background-color: var(--success-bg);
+                border-color: var(--success-border);
+                color: #86efac; /* Light green text */
+            }
+
+            .option-btn.is-wrong {
+                background-color: var(--error-bg);
+                border-color: var(--error-border);
+                color: #fca5a5; /* Light red text */
+            }
+
+            .option-btn.should-be {
+                border-color: var(--success);
+                border-style: dashed;
+                color: var(--success);
+            }
+
+            /* Disabled state for inputs after checking */
+            input:disabled {
+                cursor: not-allowed;
+            }
+            .option-btn.disabled {
+                cursor: default;
+                opacity: 0.9;
+            }
+
+            .actions {
+                margin-top: 20px;
+                text-align: right;
+            }
+
+            button.check-btn {
+                background-color: var(--primary);
+                color: #0f172a; /* Dark text on bright button */
+                border: none;
+                padding: 10px 25px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: bold;
+                font-size: 1rem;
+                transition: background 0.2s;
+            }
+
+            button.check-btn:hover {
+                background-color: var(--primary-hover);
+            }
+
+            /* Specific override for reset button to look dark grey */
+            button.reset-style {
+                background-color: #334155 !important;
+                color: white !important;
+            }
+            button.reset-style:hover {
+                background-color: #475569 !important;
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            /* LaTeX like formatting replacement */
+            .math {
+                font-family: "Times New Roman", serif;
+                font-style: italic;
+            }
+
+            /* Explanation styles */
+            .explanation-container {
+                margin-top: 15px;
+                padding-top: 10px;
+                border-top: 1px dashed var(--border);
+            }
+
+            .show-explanation-btn {
+                background-color: #4b5563;
+                color: var(--text-main);
+                border: none;
+                padding: 8px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: background 0.2s;
+                margin-right: 10px;
+            }
+
+            .show-explanation-btn:hover {
+                background-color: #6b7280;
+            }
+
+            .explanation-text {
+                margin-top: 12px;
+                padding: 15px;
+                background: #1a1a2e;
+                border-left: 3px solid var(--primary);
+                border-radius: 0 8px 8px 0;
+                color: #a5b4fc;
+                font-size: 0.95rem;
+                line-height: 1.6;
+                white-space: pre-wrap;
+            }
+
+            .explanation-text.hidden {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>BSK ZERÓWKA</h1>
+                <p class="subtitle">
+                    Przygotowanie do zerówki z BSK - Nauka poprzez quizy i interaktywne pytania!
+                </p>
+                <p class="subtitle">
+                     Termin: 19.06.2026
+                </p>
+                <p class="subtitle">
+                     Powodzenia wszystkim! 🍀
+                </p>
+            </header>
+
+            <div class="quiz-controls">
+                <div id="progress">Odpowiedziano: 0 / 0</div>
+                <div class="score-box">
+                    Wynik: <span id="score" class="score-val">0</span>% (<span id="points" class="score-val">0</span> / <span id="max-points" class="score-val">0</span> pkt)
+                </div>
+                <button class="check-btn reset-style" onclick="resetQuiz()">
+                    Resetuj
+                </button>
+            </div>
+
+            <div id="summary-container" class="hidden" style="background: var(--card); padding: 25px; margin-bottom: 20px; border-radius: 12px; border: 1px solid var(--border); border-left: 5px solid var(--error); box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+                <h2 style="color: var(--error); margin-bottom: 15px; font-family: sans-serif; font-size: 1.5rem;">Podsumowanie błędnych i częściowych odpowiedzi</h2>
+                <div id="summary-list"></div>
+            </div>
+
+            <div id="quiz-container"><div class="question-card correct" id="q-card-0">
+            <div class="q-header">
+                <span>Pytanie 1</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Nagłówek której ramki oznacza ramkę standardu IEEE 802.11ac?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-0-0">
+                    <input type="radio" name="q0" value="0" disabled="disabled">
+                    <span><b>A)</b> | L-STF | L-LTF | L-SIG | HT-SIG1 | HT-SIG2</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-0-1">
+                    <input type="radio" name="q0" value="1" disabled="disabled">
+                    <span><b>B)</b> | L-STF | L-LTF | L-SIG | BPSK Mark 1 | BPSK Mark 2</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-0-2">
+                    <input type="radio" name="q0" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> | L-STF | L-LTF | L-SIG | VHT-SIG1 | VHT-SIG2</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-0-3">
+                    <input type="radio" name="q0" value="3" disabled="disabled">
+                    <span><b>D)</b> | L-STF | L-LTF | L-SIG | RL-SIG | HE-SIG-A</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-0" onclick="checkAnswer(0)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-1">
+            <div class="q-header">
+                <span>Pytanie 2</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Na czym polega technika multi-link stosowana w standardzie IEEE 802.11be?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-1-0">
+                    <input type="checkbox" name="q1" value="0">
+                    <span><b>A)</b> Na podniesieniu niezawodności transmisji poprzez dwukrotne wysyłanie tych samych ramek</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-1-1">
+                    <input type="checkbox" name="q1" value="1">
+                    <span><b>B)</b> Na zmniejszeniu opóźnienia dostępu do kanału poprzez wybór pierwszego wolnego łącza do transmisji</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-1-2">
+                    <input type="checkbox" name="q1" value="2">
+                    <span><b>C)</b> Na możliwości równoczesnego użycia pasm częstotliwości 5 GHz i 6 GHz</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-1-3">
+                    <input type="checkbox" name="q1" value="3">
+                    <span><b>D)</b> Na równoczesnej transmisji danych do dwóch różnych punktów dostępowych</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-1" onclick="checkAnswer(1)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-2">
+            <div class="q-header">
+                <span>Pytanie 3</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Standard IEEE 802.1x definiuje tzw. kontrolowany i niekontrolowany port dla:</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-2-0">
+                    <input type="radio" name="q2" value="0" disabled="disabled">
+                    <span><b>A)</b> Authorization Server'a</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-2-1">
+                    <input type="radio" name="q2" value="1" disabled="disabled">
+                    <span><b>B)</b> Authentication Server'a</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-2-2">
+                    <input type="radio" name="q2" value="2" disabled="disabled">
+                    <span><b>C)</b> Supplicant'a</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-2-3">
+                    <input type="radio" name="q2" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> Authenticator'a</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-2" onclick="checkAnswer(2)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-3">
+            <div class="q-header">
+                <span>Pytanie 4</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Które klucze w mechanizmie WPA standardu IEEE 802.11i są wyznaczane z klucza MSK (Master Session Key)?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-3-0">
+                    <input type="radio" name="q3" value="0" disabled="disabled">
+                    <span><b>A)</b> GTK (Group Transient Key)</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-3-1">
+                    <input type="radio" name="q3" value="1" disabled="disabled">
+                    <span><b>B)</b> GMK (Group Master Key)</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-3-2">
+                    <input type="radio" name="q3" value="2" disabled="disabled">
+                    <span><b>C)</b> PTK (Pairwise Transient Key)</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-3-3">
+                    <input type="radio" name="q3" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> PMK (Pairwise Master Key)</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-3" onclick="checkAnswer(3)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-4">
+            <div class="q-header">
+                <span>Pytanie 5</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Ile technik transmisji zdefiniowano w standardzie IEEE 802.11ad?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-4-0">
+                    <input type="radio" name="q4" value="0" disabled="disabled">
+                    <span><b>A)</b> 6</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-4-1">
+                    <input type="radio" name="q4" value="1" disabled="disabled">
+                    <span><b>B)</b> 2</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-4-2">
+                    <input type="radio" name="q4" value="2" disabled="disabled">
+                    <span><b>C)</b> 4</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-4-3">
+                    <input type="radio" name="q4" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> 3</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-4" onclick="checkAnswer(4)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-5">
+            <div class="q-header">
+                <span>Pytanie 6</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Standard IEEE 802.11bc realizujący usługi EBC</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-5-0">
+                    <input type="checkbox" name="q5" value="0" disabled="disabled">
+                    <span><b>A)</b> W celu zapewnienia bezpieczeństwa wymaga uwierzytelnienia i asocjacji z każdym urządzeniem IoT</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-5-1">
+                    <input type="checkbox" name="q5" value="1" disabled="disabled">
+                    <span><b>B)</b> Umożliwia strumieniowanie usługi 
+video do dużej liczby gęsto rozmieszczonych stacji, które nie posiadają 
+funkcji nadawania ramek</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-5-2">
+                    <input type="checkbox" name="q5" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Umożliwia pomiar odległości, kąta i prędkości przemieszczania się</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-5-3">
+                    <input type="checkbox" name="q5" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> Umożliwia realizację transmisji od urządzeń IoT o małym poborze mocy będących w ruchu bez konieczności skanowania i asocjacji</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-5" onclick="checkAnswer(5)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-6">
+            <div class="q-header">
+                <span>Pytanie 7</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie współczynniki kodowania (coding rate) są stosowane w sieci standardu IEEE 802.11a?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-6-0">
+                    <input type="checkbox" name="q6" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> 2/3</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-6-1">
+                    <input type="checkbox" name="q6" value="1" disabled="disabled">
+                    <span><b>B)</b> 1/4</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-6-2">
+                    <input type="checkbox" name="q6" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> 1/2</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-6-3">
+                    <input type="checkbox" name="q6" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> 3/4</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-6" onclick="checkAnswer(6)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-7">
+            <div class="q-header">
+                <span>Pytanie 8</span>
+                <span></span>
+            </div>
+            <div class="q-text">  Która z wymienionych usług ma najniższy priorytet w standardzie IEEE 802.11aa?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-7-0">
+                    <input type="radio" name="q7" value="0" disabled="disabled">
+                    <span><b>A)</b> Primary Video</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-7-1">
+                    <input type="radio" name="q7" value="1" disabled="disabled">
+                    <span><b>B)</b> Alternate Voice</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-7-2">
+                    <input type="radio" name="q7" value="2" disabled="disabled">
+                    <span><b>C)</b> Primary Voice</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-7-3">
+                    <input type="radio" name="q7" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> Alternate Video</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-7" onclick="checkAnswer(7)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-8">
+            <div class="q-header">
+                <span>Pytanie 9</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie nowe elementy zostały wprowadzone w standardzie IEEE 802.11ac?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled should-be" id="lbl-8-0">
+                    <input type="checkbox" name="q8" value="0" disabled="disabled">
+                    <span><b>A)</b> dynamiczna rezerwacja zasobów radiowych z użyciem ramek RTS/CTS</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-8-1">
+                    <input type="checkbox" name="q8" value="1" disabled="disabled">
+                    <span><b>B)</b> multipleksacja przestrzenna do wielkości 8x8</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-8-2">
+                    <input type="checkbox" name="q8" value="2" disabled="disabled">
+                    <span><b>C)</b> modulacja 128-QAM</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-8-3">
+                    <input type="checkbox" name="q8" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> kanały radiowe o szerokości 80 MHz</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-8" onclick="checkAnswer(8)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-9">
+            <div class="q-header">
+                <span>Pytanie 10</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Zaznacz klasy ruchu w standardzie IEEE 802.11e, dla których standard zakłada niezerowe wartości TXOP?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-wrong disabled" id="lbl-9-0">
+                    <input type="checkbox" name="q9" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Best Effort</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-9-1">
+                    <input type="checkbox" name="q9" value="1" disabled="disabled">
+                    <span><b>B)</b> Voice</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-9-2">
+                    <input type="checkbox" name="q9" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Background</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-9-3">
+                    <input type="checkbox" name="q9" value="3" disabled="disabled">
+                    <span><b>D)</b> Video</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-9" onclick="checkAnswer(9)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-10">
+            <div class="q-header">
+                <span>Pytanie 11</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Ile warstw posiada model bezpieczeństwa zdefiniowany przez standard IEEE 802.11i?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-wrong disabled" id="lbl-10-0">
+                    <input type="radio" name="q10" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> 4 (WLAN layer, Access control layer, Authorization layer, Authentication layer)</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-10-1">
+                    <input type="radio" name="q10" value="1" disabled="disabled">
+                    <span><b>B)</b> 2 (WLAN layer, Access control layer)</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-10-2">
+                    <input type="radio" name="q10" value="2" disabled="disabled">
+                    <span><b>C)</b> 1 (WLAN layer)</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-10-3">
+                    <input type="radio" name="q10" value="3" disabled="disabled">
+                    <span><b>D)</b> 3 (WLAN layer, Access control layer, Authorization layer)</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-10" onclick="checkAnswer(10)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-11">
+            <div class="q-header">
+                <span>Pytanie 12</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11p</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-11-0">
+                    <input type="checkbox" name="q11" value="0">
+                    <span><b>A)</b> Mechanizm ustawiania dla stacji losowego adresu MAC w celu zapobiegania śledzeniu stacji</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-11-1">
+                    <input type="checkbox" name="q11" value="1">
+                    <span><b>B)</b> Użycie specjalnego identyfikatora ESSID umieszczonego w ramce RTS</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-11-2">
+                    <input type="checkbox" name="q11" value="2">
+                    <span><b>C)</b> Warstwa fizyczna zgodna ze standardem IEEE 802.11a</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-11-3">
+                    <input type="checkbox" name="q11" value="3">
+                    <span><b>D)</b> MAC oparty na funkcji HCCA</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-11" onclick="checkAnswer(11)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-12">
+            <div class="q-header">
+                <span>Pytanie 13</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> W jakich przypadkach punkt dostępowy może usunąć nadawaną do stacji ramkę?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-12-0">
+                    <input type="checkbox" name="q12" value="0">
+                    <span><b>A)</b> Kiedy wystąpi natłok i realizowana jest usługa SCS (Stream Classification Service)</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-12-1">
+                    <input type="checkbox" name="q12" value="1">
+                    <span><b>B)</b> Kiedy wystąpi natłok i pojawi się przepełnienie bufora w klasie Best Effort</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-12-2">
+                    <input type="checkbox" name="q12" value="2">
+                    <span><b>C)</b> Kiedy wystąpi natłok i pojawi się ramka oznaczona bitem DEI (Drop Eligibility Indicator)</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-12-3">
+                    <input type="checkbox" name="q12" value="3">
+                    <span><b>D)</b> Kiedy wystąpi natłok i pojawi się przepełnienie bufora w klasie Background</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-12" onclick="checkAnswer(12)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-13">
+            <div class="q-header">
+                <span>Pytanie 14</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie składowe czasów składają się na wyznaczenie interwału SIFS zdefiniowanego w standardzie IEEE 802.11?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-13-0">
+                    <input type="checkbox" name="q13" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> opóźnienie związane z propagacją sygnału pomiędzy nadajnikiem i odbiornikiem</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-13-1">
+                    <input type="checkbox" name="q13" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> czas przetwarzania sygnałów w odbiorniku</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-13-2">
+                    <input type="checkbox" name="q13" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> czas przełączania nadajnika/odbiornika (Rx/Tx Turnaround time)</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-13-3">
+                    <input type="checkbox" name="q13" value="3" disabled="disabled">
+                    <span><b>D)</b> jednokrotność szczeliny czasowej</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-13" onclick="checkAnswer(13)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-14">
+            <div class="q-header">
+                <span>Pytanie 15</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Które klucze w mechanizmie WPA 
+standardu IEEE 802.11i przechowywane są zarówno w AP jak i stacjach, 
+więc nie ma potrzeby aby je wzajemnie wymieniać?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-14-0">
+                    <input type="checkbox" name="q14" value="0" disabled="disabled">
+                    <span><b>A)</b> GTK (Group Transient Key)</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-14-1">
+                    <input type="checkbox" name="q14" value="1" disabled="disabled">
+                    <span><b>B)</b> PMK (Pairwise Master Key)</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-14-2">
+                    <input type="checkbox" name="q14" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> KEK (Key Encryption Key)</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-14-3">
+                    <input type="checkbox" name="q14" value="3" disabled="disabled">
+                    <span><b>D)</b> PTK (Pairwise Transient Key)</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-14" onclick="checkAnswer(14)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-15">
+            <div class="q-header">
+                <span>Pytanie 16</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie raporty może gromadzić punkt dostępowy przy użyciu standardu IEEE 802.11k?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-15-0">
+                    <input type="checkbox" name="q15" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Medium Sensing Time Histogram Report</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-15-1">
+                    <input type="checkbox" name="q15" value="1" disabled="disabled">
+                    <span><b>B)</b> Link Measurement Report</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-15-2">
+                    <input type="checkbox" name="q15" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Channel Load Report</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-15-3">
+                    <input type="checkbox" name="q15" value="3" disabled="disabled">
+                    <span><b>D)</b> Beacon Report</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-15" onclick="checkAnswer(15)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-16">
+            <div class="q-header">
+                <span>Pytanie 17</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Proces 4-way handshake w mechanizmie WPA standardu IEEE 802.11i jest realizowany z użyciem następujących metod:</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-wrong disabled" id="lbl-16-0">
+                    <input type="radio" name="q16" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> EAP-PTK</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-16-1">
+                    <input type="radio" name="q16" value="1" disabled="disabled">
+                    <span><b>B)</b> LEAP-PMK</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-16-2">
+                    <input type="radio" name="q16" value="2" disabled="disabled">
+                    <span><b>C)</b> EAP-PSK</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-16-3">
+                    <input type="radio" name="q16" value="3" disabled="disabled">
+                    <span><b>D)</b> PEAP-PTK</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-16" onclick="checkAnswer(16)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-17">
+            <div class="q-header">
+                <span>Pytanie 18</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11u:</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-17-0">
+                    <input type="checkbox" name="q17" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Rozsyłanie przez punkt dostępowy informacji o dostępnych sieciach komórkowych z użyciem jednej ramki rozgłoszeniowej</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-17-1">
+                    <input type="checkbox" name="q17" value="1" disabled="disabled">
+                    <span><b>B)</b> Tworzenie sieci kratowych</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-17-2">
+                    <input type="checkbox" name="q17" value="2" disabled="disabled">
+                    <span><b>C)</b> Transmisję GCP (Groupcast with Retries)</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-17-3">
+                    <input type="checkbox" name="q17" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> Zmniejszenie obciążenia sieci komórkowych tzw. mobile data offloading</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-17" onclick="checkAnswer(17)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-18">
+            <div class="q-header">
+                <span>Pytanie 19</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Ramka danych warstwy fizycznej FHSS standardu IEEE 802.11:</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-wrong disabled" id="lbl-18-0">
+                    <input type="checkbox" name="q18" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Nagłówek PLCP ramki jest zabezpieczony wielomianem generującym stopnia 32</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-18-1">
+                    <input type="checkbox" name="q18" value="1" disabled="disabled">
+                    <span><b>B)</b> Jest pozbawiona w preambule PLCP pola synchronizacji</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-18-2">
+                    <input type="checkbox" name="q18" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Zawiera preambułę warstwy fizycznej</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-18-3">
+                    <input type="checkbox" name="q18" value="3" disabled="disabled">
+                    <span><b>D)</b> Zawiera w preambule PLCP pole SFD (start Frame Delimiter)</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-18" onclick="checkAnswer(18)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-19">
+            <div class="q-header">
+                <span>Pytanie 20</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Implementacja jakich szybkości transmisji jest obowiązkowa w standardzie IEEE 802.11g?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-19-0">
+                    <input type="checkbox" name="q19" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> 6 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-19-1">
+                    <input type="checkbox" name="q19" value="1" disabled="disabled">
+                    <span><b>B)</b> 52 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-19-2">
+                    <input type="checkbox" name="q19" value="2" disabled="disabled">
+                    <span><b>C)</b> 48 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-19-3">
+                    <input type="checkbox" name="q19" value="3" disabled="disabled">
+                    <span><b>D)</b> 9 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-19-4">
+                    <input type="checkbox" name="q19" value="4" disabled="disabled" checked="checked">
+                    <span><b>E)</b> 24 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-19-5">
+                    <input type="checkbox" name="q19" value="5" disabled="disabled" checked="checked">
+                    <span><b>F)</b> 12 Mbit/s</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-19" onclick="checkAnswer(19)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-20">
+            <div class="q-header">
+                <span>Pytanie 21</span>
+                <span></span>
+            </div>
+            <div class="q-text"> W jakim standardzie wprowadzono trzy niezależne techniki transmisyjne: spread spectrum (Control PHY),<br>            single carrier SC (Single Carrier PHY) i OFDM (OFDM PHY)?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-20-0">
+                    <input type="radio" name="q20" value="0" disabled="disabled">
+                    <span><b>A)</b> IEEE 802.11af</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-20-1">
+                    <input type="radio" name="q20" value="1" disabled="disabled">
+                    <span><b>B)</b> IEEE 802.11ax</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-20-2">
+                    <input type="radio" name="q20" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> IEEE 802.11ad</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-20" onclick="checkAnswer(20)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-21">
+            <div class="q-header">
+                <span>Pytanie 22</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Która usługa standardu IEEE 802.11aa pozwala odrzucić część ramek w przypadku natłoku?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-wrong disabled" id="lbl-21-0">
+                    <input type="radio" name="q21" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> OBSS</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-21-1">
+                    <input type="radio" name="q21" value="1" disabled="disabled">
+                    <span><b>B)</b> SCS</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-21-2">
+                    <input type="radio" name="q21" value="2" disabled="disabled">
+                    <span><b>C)</b> GCR</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-21-3">
+                    <input type="radio" name="q21" value="3" disabled="disabled">
+                    <span><b>D)</b> DMS</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-21" onclick="checkAnswer(21)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-22">
+            <div class="q-header">
+                <span>Pytanie 23</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień charakterystyczne cechy standardu IEEE 802.11p?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-22-0">
+                    <input type="checkbox" name="q22" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Praca w kanałach o szerokości 10MHz</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-22-1">
+                    <input type="checkbox" name="q22" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> Szyfrowanie ramek zarządzających</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-22-2">
+                    <input type="checkbox" name="q22" value="2" disabled="disabled">
+                    <span><b>C)</b> Zwiększenie poziomu mocy do ponad 500mW</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-22-3">
+                    <input type="checkbox" name="q22" value="3" disabled="disabled">
+                    <span><b>D)</b> Tworzenie sieci kratowych</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-22" onclick="checkAnswer(22)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-23">
+            <div class="q-header">
+                <span>Pytanie 24</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Z jakich komponentów składa się sieć kratowa?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-23-0">
+                    <input type="checkbox" name="q23" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Mesh AP</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-23-1">
+                    <input type="checkbox" name="q23" value="1" disabled="disabled">
+                    <span><b>B)</b> Mest STA</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-23-2">
+                    <input type="checkbox" name="q23" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Mesh Repeater</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-23-3">
+                    <input type="checkbox" name="q23" value="3" disabled="disabled">
+                    <span><b>D)</b> Mesh Router</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-23" onclick="checkAnswer(23)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-24">
+            <div class="q-header">
+                <span>Pytanie 25</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jaki protokół jest stosowany do uzgadniania kluczy w mechanizmie WPS standardu IEEE 802.11i?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-24-0">
+                    <input type="radio" name="q24" value="0" disabled="disabled">
+                    <span><b>A)</b> Pohliga-Gamala</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-24-1">
+                    <input type="radio" name="q24" value="1" disabled="disabled">
+                    <span><b>B)</b> Rabina</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-24-2">
+                    <input type="radio" name="q24" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Diffiego-Hellmana</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-24-3">
+                    <input type="radio" name="q24" value="3" disabled="disabled">
+                    <span><b>D)</b> Shamir-Adleman</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-24" onclick="checkAnswer(24)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-25">
+            <div class="q-header">
+                <span>Pytanie 26</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień funkcje realizowane przez punkt dostępowy AP zgodnie z terminologią stosowaną w standardzie IEEE 802.11?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-25-0">
+                    <input type="checkbox" name="q25" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Zapewnienie synchronizacji ze wspólnym zegarem.</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-25-1">
+                    <input type="checkbox" name="q25" value="1" disabled="disabled">
+                    <span><b>B)</b> Skanowanie kanałów radiowych w poszukiwaniu nowych stacji klienckich</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-25-2">
+                    <input type="checkbox" name="q25" value="2" disabled="disabled">
+                    <span><b>C)</b> Routing pakietów do sieci IEEE 802.3 (Ethernet)</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-25-3">
+                    <input type="checkbox" name="q25" value="3" disabled="disabled">
+                    <span><b>D)</b> Autoryzację użytkowników z odpowiednim obszarem BSA (Basic Service Area)</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-25-4">
+                    <input type="checkbox" name="q25" value="4" disabled="disabled" checked="checked">
+                    <span><b>E)</b> Zarządzanie poborem energii poprzez buforowanie danych do zasocjowanych z nim stacji</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-25" onclick="checkAnswer(25)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-26">
+            <div class="q-header">
+                <span>Pytanie 27</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Które klasy ruchu w standardzie IEEE 802.11e mają te same parametry okna współzawodnictwa?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-26-0">
+                    <input type="checkbox" name="q26" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Best Effort</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-26-1">
+                    <input type="checkbox" name="q26" value="1" disabled="disabled">
+                    <span><b>B)</b> Voice</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-26-2">
+                    <input type="checkbox" name="q26" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Background</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-26-3">
+                    <input type="checkbox" name="q26" value="3" disabled="disabled">
+                    <span><b>D)</b> Video</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-26" onclick="checkAnswer(26)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-27">
+            <div class="q-header">
+                <span>Pytanie 28</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11ay pracującego w paśmie 60GHz:</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-27-0">
+                    <input type="checkbox" name="q27" value="0" disabled="disabled">
+                    <span><b>A)</b> użycie protokołu dostępu do kanału radiowego ECCA</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-27-1">
+                    <input type="checkbox" name="q27" value="1" disabled="disabled">
+                    <span><b>B)</b> MU-MIMO</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-27-2">
+                    <input type="checkbox" name="q27" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> łączenie kanałów</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-27-3">
+                    <input type="checkbox" name="q27" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> użycie kanału radiowego o szerokości 8,64 GHz</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-27" onclick="checkAnswer(27)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-28">
+            <div class="q-header">
+                <span>Pytanie 29</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Które urządzenia sieciowe obliczają klucze DLP Pairwise Master Key w standardzie IEEE 802.11e oraz mechanizmie DLP?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-28-0">
+                    <input type="radio" name="q28" value="0">
+                    <span><b>A)</b> QSTA 1</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-28-1">
+                    <input type="radio" name="q28" value="1">
+                    <span><b>B)</b> AP</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-28-2">
+                    <input type="radio" name="q28" value="2">
+                    <span><b>C)</b> QSTA 1, QSTA 2 i AP</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-28-3">
+                    <input type="radio" name="q28" value="3">
+                    <span><b>D)</b> QSTA 2</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-28" onclick="checkAnswer(28)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-29">
+            <div class="q-header">
+                <span>Pytanie 30</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie nowe elementy zostały wprowadzone w standardzie IEEE 802.11ac?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-29-0">
+                    <input type="checkbox" name="q29" value="0" disabled="disabled">
+                    <span><b>A)</b> Modulację 2048-QAM</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-29-1">
+                    <input type="checkbox" name="q29" value="1" disabled="disabled">
+                    <span><b>B)</b> Kanały radiowe o szerokości 40 MHz</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-29-2">
+                    <input type="checkbox" name="q29" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Wsparcie dla MU-MIMO</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-29-3">
+                    <input type="checkbox" name="q29" value="3" disabled="disabled">
+                    <span><b>D)</b> Rezerwację kanałów 20 MHz z użyciem ramek RTS/CTS</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-29" onclick="checkAnswer(29)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-30">
+            <div class="q-header">
+                <span>Pytanie 31</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jaka jest najbardziej wydajna modulacja stosowana w standardzie IEEE 802.11ac?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-30-0">
+                    <input type="radio" name="q30" value="0" disabled="disabled">
+                    <span><b>A)</b> 512-QAM</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-30-1">
+                    <input type="radio" name="q30" value="1" disabled="disabled">
+                    <span><b>B)</b> 64-QAM</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-30-2">
+                    <input type="radio" name="q30" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> 256-QAM</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-30-3">
+                    <input type="radio" name="q30" value="3" disabled="disabled">
+                    <span><b>D)</b> 2048-QAM</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-30" onclick="checkAnswer(30)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-31">
+            <div class="q-header">
+                <span>Pytanie 32</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11b</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-31-0">
+                    <input type="checkbox" name="q31" value="0" disabled="disabled">
+                    <span><b>A)</b> kanały są oddzielone od siebie o 6MHz</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-31-1">
+                    <input type="checkbox" name="q31" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> w Europie istnieją maksymalnie 3 nienachodzące na siebie kanały radiowe</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-31-2">
+                    <input type="checkbox" name="q31" value="2" disabled="disabled">
+                    <span><b>C)</b> w systemie z długą preambułą 
+preambuła jest nadawana z szybkością transmisji 1 Mbit/s, a nagłówek 
+warstwy fizycznej z szybkością transmisji 2</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-31-3">
+                    <input type="checkbox" name="q31" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> każdy kanał radiowy zajmuje 22 MHz</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-31" onclick="checkAnswer(31)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-32">
+            <div class="q-header">
+                <span>Pytanie 33</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jakie mechanizmy są stosowane do realizacji funkcji integralności danych w mechanizmie WPA2 standardu 802.11i?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-32-0">
+                    <input type="radio" name="q32" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> CCMP</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-32-1">
+                    <input type="radio" name="q32" value="1" disabled="disabled">
+                    <span><b>B)</b> CRC32</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-32-2">
+                    <input type="radio" name="q32" value="2" disabled="disabled">
+                    <span><b>C)</b> Michael</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-32-3">
+                    <input type="radio" name="q32" value="3" disabled="disabled">
+                    <span><b>D)</b> Funkcja mieszająca</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-32" onclick="checkAnswer(32)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-33">
+            <div class="q-header">
+                <span>Pytanie 34</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Z jakich rodzajów modulacji korzysta warstwa fizyczna standardu IEEE 802.11b?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-wrong disabled" id="lbl-33-0">
+                    <input type="radio" name="q33" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> 4-poziomowa GFSK</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-33-1">
+                    <input type="radio" name="q33" value="1" disabled="disabled">
+                    <span><b>B)</b> 16-QAM</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-33-2">
+                    <input type="radio" name="q33" value="2" disabled="disabled">
+                    <span><b>C)</b> CCK</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-33-3">
+                    <input type="radio" name="q33" value="3" disabled="disabled">
+                    <span><b>D)</b> 4-QAM</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-33" onclick="checkAnswer(33)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-34">
+            <div class="q-header">
+                <span>Pytanie 35</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie operacje zdefiniowano w standardzie IEEE 802.11f?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-34-0">
+                    <input type="checkbox" name="q34" value="0" disabled="disabled">
+                    <span><b>A)</b> IAPP-UPDATE</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-34-1">
+                    <input type="checkbox" name="q34" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> IAPP-MOVE</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-34-2">
+                    <input type="checkbox" name="q34" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> IAPP-ADD</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-34-3">
+                    <input type="checkbox" name="q34" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> IAPP-CACHE</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-34" onclick="checkAnswer(34)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-35">
+            <div class="q-header">
+                <span>Pytanie 36</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11a:</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-35-0">
+                    <input type="checkbox" name="q35" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Kanały radiowe są oddzielone od siebie o 20MHz</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-35-1">
+                    <input type="checkbox" name="q35" value="1" disabled="disabled">
+                    <span><b>B)</b> W Europie istnieją maksymalnie 3 nienachodzące na siebie kanały radiowe</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-35-2">
+                    <input type="checkbox" name="q35" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Nagłówek PLCP jest nadawany z szybkością transmisji 6Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-35-3">
+                    <input type="checkbox" name="q35" value="3" disabled="disabled">
+                    <span><b>D)</b> Każdy kanał radiowy zajmuje 22 MHz</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-35" onclick="checkAnswer(35)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-36">
+            <div class="q-header">
+                <span>Pytanie 37</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jaki mechanizm w standardzie IEEE 802.11aa określa sposób wyboru ramki do nadania z kolejek głównej i alternatywnej?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-36-0">
+                    <input type="radio" name="q36" value="0" disabled="disabled">
+                    <span><b>A)</b> HCCA</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-36-1">
+                    <input type="radio" name="q36" value="1" disabled="disabled">
+                    <span><b>B)</b> CSMA</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-36-2">
+                    <input type="radio" name="q36" value="2" disabled="disabled">
+                    <span><b>C)</b> CBSA</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-36-3">
+                    <input type="radio" name="q36" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> EDCA</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-36" onclick="checkAnswer(36)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-37">
+            <div class="q-header">
+                <span>Pytanie 38</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie nowe elementy zostały wprowadzone w standardzie IEEE 802.11h?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-37-0">
+                    <input type="checkbox" name="q37" value="0" disabled="disabled">
+                    <span><b>A)</b> mechanizm ustawiania dla stacji losowego adresu MAC w celu zapobiegania śledzeniu stacji</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-37-1">
+                    <input type="checkbox" name="q37" value="1" disabled="disabled">
+                    <span><b>B)</b> mechanizm wykrywania najlepszego punktu dostępowego na podstawie pomiarów</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-37-2">
+                    <input type="checkbox" name="q37" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> mechanizm dynamicznego wyboru kanałów DCS (Dynamic Channel Selection)</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-37-3">
+                    <input type="checkbox" name="q37" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> mechanizm kontroli poziomu mocy TPC (Transmit Power Control)</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-37" onclick="checkAnswer(37)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-38">
+            <div class="q-header">
+                <span>Pytanie 39</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie nowe elementy zostały wprowadzone w standardzie IEEE 802.11n?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled should-be" id="lbl-38-0">
+                    <input type="checkbox" name="q38" value="0" disabled="disabled">
+                    <span><b>A)</b> Kształtowanie wiązki antenowej</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-38-1">
+                    <input type="checkbox" name="q38" value="1" disabled="disabled">
+                    <span><b>B)</b> Kanały radiowe o szerokości 40MHz</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-38-2">
+                    <input type="checkbox" name="q38" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> Zmianę odstępów ochronnych z 800ns na 400ns</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-38-3">
+                    <input type="checkbox" name="q38" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> Agregacja ramek</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-38" onclick="checkAnswer(38)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-39">
+            <div class="q-header">
+                <span>Pytanie 40</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Z jaką szybkością transmisji może być nadawany payload w trybie z krótką preambułą sieci standardu IEEE 802.11b?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-39-0">
+                    <input type="checkbox" name="q39" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> 2 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-39-1">
+                    <input type="checkbox" name="q39" value="1" disabled="disabled">
+                    <span><b>B)</b> 5,5 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-39-2">
+                    <input type="checkbox" name="q39" value="2" disabled="disabled">
+                    <span><b>C)</b> 11 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-39-3">
+                    <input type="checkbox" name="q39" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> 1 Mbit/s</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-39" onclick="checkAnswer(39)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-40">
+            <div class="q-header">
+                <span>Pytanie 41</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Który rodzaj agregacji w standardzie 802.11ac umieszcza w zagregowanej ramce tylko jeden nagłówek PHY i MAC?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-wrong disabled" id="lbl-40-0">
+                    <input type="radio" name="q40" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> A-MSDU w A-MPDU</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-40-1">
+                    <input type="radio" name="q40" value="1" disabled="disabled">
+                    <span><b>B)</b> A-MPDU w A-MSDU</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-40-2">
+                    <input type="radio" name="q40" value="2" disabled="disabled">
+                    <span><b>C)</b> A-MPDU</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-40-3">
+                    <input type="radio" name="q40" value="3" disabled="disabled">
+                    <span><b>D)</b> A-MSDU</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-40" onclick="checkAnswer(40)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-41">
+            <div class="q-header">
+                <span>Pytanie 42</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Które usługi multicastowe zdefiniowane w standardzie IEEE 802.11aa korzystają z mechanizmu blokowego potwierdzenia?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-wrong disabled" id="lbl-41-0">
+                    <input type="checkbox" name="q41" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> DMS</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-41-1">
+                    <input type="checkbox" name="q41" value="1" disabled="disabled">
+                    <span><b>B)</b> GCR Immediate</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-41-2">
+                    <input type="checkbox" name="q41" value="2" disabled="disabled">
+                    <span><b>C)</b> GCR Unsolicited Retry</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-41-3">
+                    <input type="checkbox" name="q41" value="3" disabled="disabled">
+                    <span><b>D)</b> GCR Delayed</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-41" onclick="checkAnswer(41)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-42">
+            <div class="q-header">
+                <span>Pytanie 43</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Która z wymienionych usług ma najwyższy priorytet w standardzie IEEE 802.11aa?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-42-0">
+                    <input type="radio" name="q42" value="0" disabled="disabled">
+                    <span><b>A)</b> Alternate Video</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-42-1">
+                    <input type="radio" name="q42" value="1" disabled="disabled">
+                    <span><b>B)</b> Alternate Voice</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-42-2">
+                    <input type="radio" name="q42" value="2" disabled="disabled">
+                    <span><b>C)</b> Primary Video</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-42-3">
+                    <input type="radio" name="q42" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> Primary Voice</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-42" onclick="checkAnswer(42)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-43">
+            <div class="q-header">
+                <span>Pytanie 44</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jaki klucz służy do wyznaczania klucza PTK w standardzie IEEE 802.11i?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-43-0">
+                    <input type="radio" name="q43" value="0" disabled="disabled">
+                    <span><b>A)</b> KEK</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-43-1">
+                    <input type="radio" name="q43" value="1" disabled="disabled">
+                    <span><b>B)</b> KCK</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-43-2">
+                    <input type="radio" name="q43" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> PMK</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-43-3">
+                    <input type="radio" name="q43" value="3" disabled="disabled">
+                    <span><b>D)</b> GTK</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-43" onclick="checkAnswer(43)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-44">
+            <div class="q-header">
+                <span>Pytanie 45</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11ba (Wake-up Radio)</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-wrong disabled" id="lbl-44-0">
+                    <input type="checkbox" name="q44" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> budzenie się stacji z użyciem zewnętrznego transceivera radiowego, który dodatkowo informuje AP, że może już wysłać dane</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-44-1">
+                    <input type="checkbox" name="q44" value="1" disabled="disabled">
+                    <span><b>B)</b> cykliczne budzenie się stacji w celu sprawdzenia, czy są do niej zbuforowane dane</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-44-2">
+                    <input type="checkbox" name="q44" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> użycie prostej modulacji On-Off-Keying (OOK)</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-44-3">
+                    <input type="checkbox" name="q44" value="3" disabled="disabled">
+                    <span><b>D)</b> budzenie się stacji z użyciem zewnętrznego odbiornika radiowego, który informuje stację o zbuforowanych danych</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-44" onclick="checkAnswer(44)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-45">
+            <div class="q-header">
+                <span>Pytanie 46</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jaka jest nowa funkcja wprowadzona przez standard IEEE 802.11ax?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-45-0">
+                    <input type="radio" name="q45" value="0" disabled="disabled">
+                    <span><b>A)</b> szerokość kanału 6 MHz</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-45-1">
+                    <input type="radio" name="q45" value="1" disabled="disabled">
+                    <span><b>B)</b> dwukierunkowy okres TXOP</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-45-2">
+                    <input type="radio" name="q45" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> łączenie kanałów</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-45-3">
+                    <input type="radio" name="q45" value="3" disabled="disabled">
+                    <span><b>D)</b> kolorowanie BSS</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-45" onclick="checkAnswer(45)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-46">
+            <div class="q-header">
+                <span>Pytanie 47</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text">  Z jakich rodzajów modulacji korzysta warstwa fizyczna standardu IEEE 802.11a?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled should-be" id="lbl-46-0">
+                    <input type="checkbox" name="q46" value="0" disabled="disabled">
+                    <span><b>A)</b> 64-QAM</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-46-1">
+                    <input type="checkbox" name="q46" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> 4-PPM</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-46-2">
+                    <input type="checkbox" name="q46" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> BPSK</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-46-3">
+                    <input type="checkbox" name="q46" value="3" disabled="disabled">
+                    <span><b>D)</b> 256-QAM</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-46" onclick="checkAnswer(46)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-47">
+            <div class="q-header">
+                <span>Pytanie 48</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie tryby transmisji zdefiniowane w standardzie 802.11g?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled should-be" id="lbl-47-0">
+                    <input type="checkbox" name="q47" value="0" disabled="disabled">
+                    <span><b>A)</b> DSSS-OFDM</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-47-1">
+                    <input type="checkbox" name="q47" value="1" disabled="disabled">
+                    <span><b>B)</b> DSSS-PBCC</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-47-2">
+                    <input type="checkbox" name="q47" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> ERP-OFDM</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-47-3">
+                    <input type="checkbox" name="q47" value="3" disabled="disabled">
+                    <span><b>D)</b> ERP-DSSS</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-47" onclick="checkAnswer(47)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-48">
+            <div class="q-header">
+                <span>Pytanie 49</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jakie rozszerzenie standardu IEEE 802.11 wprowadza mechanizm Dynamic Channel Selection (DCS)?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-48-0">
+                    <input type="radio" name="q48" value="0" disabled="disabled">
+                    <span><b>A)</b> 802.11aa</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-48-1">
+                    <input type="radio" name="q48" value="1" disabled="disabled">
+                    <span><b>B)</b> 802.11p</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-48-2">
+                    <input type="radio" name="q48" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> 802.11h</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-48-3">
+                    <input type="radio" name="q48" value="3" disabled="disabled">
+                    <span><b>D)</b> 802.11j</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-48" onclick="checkAnswer(48)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-49">
+            <div class="q-header">
+                <span>Pytanie 50</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jaki mechanizm został wprowadzony w IEEE 802.11e?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-49-0">
+                    <input type="radio" name="q49" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Okres TXOP (Transmission Opportunity)</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-49-1">
+                    <input type="radio" name="q49" value="1" disabled="disabled">
+                    <span><b>B)</b> Blokowe zapytania</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-49-2">
+                    <input type="radio" name="q49" value="2" disabled="disabled">
+                    <span><b>C)</b> Tryb transmisji Sts 'Station to Station</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-49-3">
+                    <input type="radio" name="q49" value="3" disabled="disabled">
+                    <span><b>D)</b> Fragmentacja</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-49" onclick="checkAnswer(49)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-50">
+            <div class="q-header">
+                <span>Pytanie 51</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Z jaką szybkością transmisji może być nadawana preambuła PLCP w trybie z krótką preambułą sieci standardu IEEE 802.11b?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-50-0">
+                    <input type="radio" name="q50" value="0" disabled="disabled">
+                    <span><b>A)</b> 11 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-50-1">
+                    <input type="radio" name="q50" value="1" disabled="disabled">
+                    <span><b>B)</b> 5,5 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-50-2">
+                    <input type="radio" name="q50" value="2" disabled="disabled">
+                    <span><b>C)</b> 2 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-50-3">
+                    <input type="radio" name="q50" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> 1 Mbit/s</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-50" onclick="checkAnswer(50)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-51">
+            <div class="q-header">
+                <span>Pytanie 52</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> W jakich sytuacjach stacja może na pewno rozpocząć nadawanie, korzystając z algorytmu CBSA w IEEE 802.11aa?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-51-0">
+                    <input type="checkbox" name="q51" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> Kiedy zebrany kredyt jest większy od zera</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-51-1">
+                    <input type="checkbox" name="q51" value="1" disabled="disabled">
+                    <span><b>B)</b> Kiedy zebrany kredyt jest większy od wartości IoCredit</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-51-2">
+                    <input type="checkbox" name="q51" value="2" disabled="disabled">
+                    <span><b>C)</b> Jeżeli kredyt wynosi zero, a kolejka primary jest pusta</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-51-3">
+                    <input type="checkbox" name="q51" value="3" disabled="disabled">
+                    <span><b>D)</b> Kiedy zebrany kredyt jest większy od wartośći hiCredit</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-51" onclick="checkAnswer(51)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-52">
+            <div class="q-header">
+                <span>Pytanie 53</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie szybkości w stransmisji można 
+uzyskać stosując tryb pracy ERP-PBCC (Packet Binary Convolutional Code) w
+ sieciach standardu IEEE 802.11g?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-52-0">
+                    <input type="checkbox" name="q52" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> 33 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-52-1">
+                    <input type="checkbox" name="q52" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> 22 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-52-2">
+                    <input type="checkbox" name="q52" value="2" disabled="disabled">
+                    <span><b>C)</b> 18 Mbit/s</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-52-3">
+                    <input type="checkbox" name="q52" value="3" disabled="disabled">
+                    <span><b>D)</b> 48 Mbit/s</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-52" onclick="checkAnswer(52)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-53">
+            <div class="q-header">
+                <span>Pytanie 54</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11aa</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-53-0">
+                    <input type="checkbox" name="q53" value="0" disabled="disabled">
+                    <span><b>A)</b> realizacja szybkiego przełączania międzykomórkowego</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-53-1">
+                    <input type="checkbox" name="q53" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> zarządzanie OBSS (Overlapping Basic Service Set)</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-53-2">
+                    <input type="checkbox" name="q53" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> transmisja GCR (Groupcast with Retries)</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-53-3">
+                    <input type="checkbox" name="q53" value="3" disabled="disabled">
+                    <span><b>D)</b> realizacja usługi SCS (Stream Classification Service)</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-53" onclick="checkAnswer(53)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-54">
+            <div class="q-header">
+                <span>Pytanie 55</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11af</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled should-be" id="lbl-54-0">
+                    <input type="checkbox" name="q54" value="0" disabled="disabled">
+                    <span><b>A)</b> możliwość agregacji kanałów</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-54-1">
+                    <input type="checkbox" name="q54" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> zastosowanie warstwy fizycznej standardu IEEE 802.11ac</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-54-2">
+                    <input type="checkbox" name="q54" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> użycie pasma częstotliwości &lt;1GHz</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-54-3">
+                    <input type="checkbox" name="q54" value="3" disabled="disabled">
+                    <span><b>D)</b> obsługa kanałów o szerokości 4MHz</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-54" onclick="checkAnswer(54)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-55">
+            <div class="q-header">
+                <span>Pytanie 56</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Z jaką dokładnością mechanizm TPC (Transmit Power Control) standardu IEEE 802.11h umożliwia sterowanie poziomem mocy nadajnika?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-55-0">
+                    <input type="checkbox" name="q55" value="0" disabled="disabled">
+                    <span><b>A)</b> 10dBm</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-55-1">
+                    <input type="checkbox" name="q55" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> 0dBm</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-55-2">
+                    <input type="checkbox" name="q55" value="2" disabled="disabled" checked="checked">
+                    <span><b>C)</b> 1mW</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-55-3">
+                    <input type="checkbox" name="q55" value="3" disabled="disabled">
+                    <span><b>D)</b> 5mW</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-55" onclick="checkAnswer(55)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card correct" id="q-card-56">
+            <div class="q-header">
+                <span>Pytanie 57</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Który standard umożliwia użycie kanałów o szerokości 7 MHz?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-56-0">
+                    <input type="radio" name="q56" value="0" disabled="disabled">
+                    <span><b>A)</b> IEEE 802.11ad</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-56-1">
+                    <input type="radio" name="q56" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> IEEE 802.11af</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-56-2">
+                    <input type="radio" name="q56" value="2" disabled="disabled">
+                    <span><b>C)</b> IEEE 802.11ah</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-56-3">
+                    <input type="radio" name="q56" value="3" disabled="disabled">
+                    <span><b>D)</b> IEEE 802.11ac</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-56" onclick="checkAnswer(56)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-57">
+            <div class="q-header">
+                <span>Pytanie 58</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Które dane są potrzebne do odczytania 
+klucza GTK (Group Transient Key) w stacji przy Group Key Handshake i 
+stosowaniu mechanizmu WPA w standardzie 802.11i?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-57-0">
+                    <input type="radio" name="q57" value="0" disabled="disabled">
+                    <span><b>A)</b> PMK (Pairwise Master Key)</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-57-1">
+                    <input type="radio" name="q57" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> Gnonce</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-57-2">
+                    <input type="radio" name="q57" value="2" disabled="disabled">
+                    <span><b>C)</b> KEK (Key Encryption Key)</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-57-3">
+                    <input type="radio" name="q57" value="3" disabled="disabled">
+                    <span><b>D)</b> Anonce</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-57" onclick="checkAnswer(57)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-58">
+            <div class="q-header">
+                <span>Pytanie 59</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Czy koordynator hybrydowy sieci 
+standardu 802.11e może w ramach okresu rywalizacyjnego superramki 
+przypytywać stację z użyciem pollingu?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled" id="lbl-58-0">
+                    <input type="radio" name="q58" value="0" disabled="disabled">
+                    <span><b>A)</b> Tak pod warunkiem, że nie stosuje mechanizmu RTS/CTS</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-58-1">
+                    <input type="radio" name="q58" value="1" disabled="disabled">
+                    <span><b>B)</b> Tak</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-58-2">
+                    <input type="radio" name="q58" value="2" disabled="disabled">
+                    <span><b>C)</b> Tak, pod warunkiem, że nadaje wyłącznie w klasie ruchu 'voice'</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-58-3">
+                    <input type="radio" name="q58" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> Nie</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-58" onclick="checkAnswer(58)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-59">
+            <div class="q-header">
+                <span>Pytanie 60</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Ile priorytetów użytkownika wprowadzono w standardzie IEEE 802.11e?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn disabled should-be" id="lbl-59-0">
+                    <input type="radio" name="q59" value="0" disabled="disabled">
+                    <span><b>A)</b> 8</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-59-1">
+                    <input type="radio" name="q59" value="1" disabled="disabled">
+                    <span><b>B)</b> 4</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-59-2">
+                    <input type="radio" name="q59" value="2" disabled="disabled">
+                    <span><b>C)</b> 6</span>
+                </label>
+            
+                <label class="option-btn is-wrong disabled" id="lbl-59-3">
+                    <input type="radio" name="q59" value="3" disabled="disabled" checked="checked">
+                    <span><b>D)</b> 2</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-59" onclick="checkAnswer(59)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-60">
+            <div class="q-header">
+                <span>Pytanie 61</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Czy okres czasowy AIFS wprowadzony w standardzie IEEE 802.11e może być równy okresowi DIFS</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-60-0">
+                    <input type="checkbox" name="q60" value="0">
+                    <span><b>A)</b> nie</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-60-1">
+                    <input type="checkbox" name="q60" value="1">
+                    <span><b>B)</b> tak, pod warunkiem, że nadajemy ramkę z danymi w klasie ruchu ‘voice’</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-60-2">
+                    <input type="checkbox" name="q60" value="2">
+                    <span><b>C)</b> tak, pod warunkiem, że nadajemy ramkę z danymi w klasie ruchu ‘video’</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-60-3">
+                    <input type="checkbox" name="q60" value="3">
+                    <span><b>D)</b> tak, pod warunkiem, że nadajemy ramkę z danymi w klasie ruchu ‘best effort’</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-60" onclick="checkAnswer(60)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card wrong" id="q-card-61">
+            <div class="q-header">
+                <span>Pytanie 62</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11z</div>
+            <div class="options-grid">
+                
+                <label class="option-btn is-correct disabled" id="lbl-61-0">
+                    <input type="checkbox" name="q61" value="0" disabled="disabled" checked="checked">
+                    <span><b>A)</b> pozwala na realizację transmisji 
+między stacjami z wykorzystaniem najnowszych rozszerzeń nawet jeżeli 
+inne urządzenia ich nie wspierają</span>
+                </label>
+            
+                <label class="option-btn is-correct disabled" id="lbl-61-1">
+                    <input type="checkbox" name="q61" value="1" disabled="disabled" checked="checked">
+                    <span><b>B)</b> zestawia bezpośrednie połączenie między stacjami z pominięciem transmisji przez AP</span>
+                </label>
+            
+                <label class="option-btn disabled" id="lbl-61-2">
+                    <input type="checkbox" name="q61" value="2" disabled="disabled">
+                    <span><b>C)</b> umożliwia szyfrowanie ramek zarządzających</span>
+                </label>
+            
+                <label class="option-btn disabled should-be" id="lbl-61-3">
+                    <input type="checkbox" name="q61" value="3" disabled="disabled">
+                    <span><b>D)</b> definiuje rozszerzone mechanizmy oszczędzania poboru energii</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-61" onclick="checkAnswer(61)" style="display: none;">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-62">
+            <div class="q-header">
+                <span>Pytanie 63</span>
+                <span></span>
+            </div>
+            <div class="q-text"> W którym trybie oszczędzania poboru energii możliwa jest transmisja SCO?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-62-0">
+                    <input type="radio" name="q62" value="0">
+                    <span><b>A)</b> Standby</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-62-1">
+                    <input type="radio" name="q62" value="1">
+                    <span><b>B)</b> Park</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-62-2">
+                    <input type="radio" name="q62" value="2">
+                    <span><b>C)</b> Sniff</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-62-3">
+                    <input type="radio" name="q62" value="3">
+                    <span><b>D)</b> Hold</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-62" onclick="checkAnswer(62)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-63">
+            <div class="q-header">
+                <span>Pytanie 64</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Które pola ramki są szyfrowane w algorytmie AES-CCMP standardu IEEE 802.11i?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-63-0">
+                    <input type="radio" name="q63" value="0">
+                    <span><b>A)</b> Header + Payload</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-63-1">
+                    <input type="radio" name="q63" value="1">
+                    <span><b>B)</b> Header + MIC</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-63-2">
+                    <input type="radio" name="q63" value="2">
+                    <span><b>C)</b> Header + Payload + MIC</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-63-3">
+                    <input type="radio" name="q63" value="3">
+                    <span><b>D)</b> Payload + MIC</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-63" onclick="checkAnswer(63)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-64">
+            <div class="q-header">
+                <span>Pytanie 65</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Wymień cechy charakterystyczne standardu IEEE 802.11ah</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-64-0">
+                    <input type="checkbox" name="q64" value="0">
+                    <span><b>A)</b> zastosowanie warstwy fizycznej standardu IEEE 802.11ac [w a/g]</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-64-1">
+                    <input type="checkbox" name="q64" value="1">
+                    <span><b>B)</b> wsparcie dla dwukierunkowej rezerwacji TXOP</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-64-2">
+                    <input type="checkbox" name="q64" value="2">
+                    <span><b>C)</b> możliwość użycia stacji przekaźnikowych do realizacji transmisji wieloskokowych</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-64-3">
+                    <input type="checkbox" name="q64" value="3">
+                    <span><b>D)</b> ok. 15-krotne zmniejszenie opóźnienia w przełączaniu międzykomórkowym</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-64" onclick="checkAnswer(64)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-65">
+            <div class="q-header">
+                <span>Pytanie 66</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jaki mechanizm transmisji multicastowej w IEEE 802.11aa jest najbardziej wydajny?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-65-0">
+                    <input type="radio" name="q65" value="0">
+                    <span><b>A)</b> DMS</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-65-1">
+                    <input type="radio" name="q65" value="1">
+                    <span><b>B)</b> GCR UR</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-65-2">
+                    <input type="radio" name="q65" value="2">
+                    <span><b>C)</b> Legacy</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-65-3">
+                    <input type="radio" name="q65" value="3">
+                    <span><b>D)</b> GCR Block ACK</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-65" onclick="checkAnswer(65)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-66">
+            <div class="q-header">
+                <span>Pytanie 67</span>
+                <span>(Wielokrotny wybór)</span>
+            </div>
+            <div class="q-text"> Jakie rodzaje agregacji można użyć przy zastosowaniu standardu IEEE 802.11ac?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-66-0">
+                    <input type="checkbox" name="q66" value="0">
+                    <span><b>A)</b> A-MPDU w A-MSDU</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-66-1">
+                    <input type="checkbox" name="q66" value="1">
+                    <span><b>B)</b> A-MSDU w A-MPDU</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-66-2">
+                    <input type="checkbox" name="q66" value="2">
+                    <span><b>C)</b> A-MPDU</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-66-3">
+                    <input type="checkbox" name="q66" value="3">
+                    <span><b>D)</b> A-MSDU</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-66" onclick="checkAnswer(66)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-67">
+            <div class="q-header">
+                <span>Pytanie 68</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jaką dodatkową funkcjonalność realizują ramki RTS/CTS w standardzie IEEE 802.11ac?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-67-0">
+                    <input type="radio" name="q67" value="0">
+                    <span><b>A)</b> poprawę działania beamforming</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-67-1">
+                    <input type="radio" name="q67" value="1">
+                    <span><b>B)</b> rezerwację kanałów 20 MHz</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-67-2">
+                    <input type="radio" name="q67" value="2">
+                    <span><b>C)</b> wsparcie dla MU-MIMO</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-67-3">
+                    <input type="radio" name="q67" value="3">
+                    <span><b>D)</b> lepszą agregację ramek</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-67" onclick="checkAnswer(67)">Sprawdź</button>
+            </div>
+            
+        </div><div class="question-card" id="q-card-68">
+            <div class="q-header">
+                <span>Pytanie 69</span>
+                <span></span>
+            </div>
+            <div class="q-text"> Jaki klucz służy do zabezpieczenia transmisji grupowej w standardzie IEEE 802.11i?</div>
+            <div class="options-grid">
+                
+                <label class="option-btn" id="lbl-68-0">
+                    <input type="radio" name="q68" value="0">
+                    <span><b>A)</b> PTK</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-68-1">
+                    <input type="radio" name="q68" value="1">
+                    <span><b>B)</b> GTK</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-68-2">
+                    <input type="radio" name="q68" value="2">
+                    <span><b>C)</b> KCK</span>
+                </label>
+            
+                <label class="option-btn" id="lbl-68-3">
+                    <input type="radio" name="q68" value="3">
+                    <span><b>D)</b> PMK</span>
+                </label>
+            
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-68" onclick="checkAnswer(68)">Sprawdź</button>
+            </div>
+            
+        </div></div>
+        </div>
+
+        <script>
+            // --- DANE WEJŚCIOWE (RAW DATA) ---
+            const rawData = `
+
+
+            [#1] W jakich przypadkach punkt dostępowy może usunąć nadawaną do stacji ramkę?
+            >>>A) Kiedy wystąpi natłok i pojawi się przepełnienie bufora w klasie Background
+            >>>B) Kiedy wystąpi natłok i pojawi się przepełnienie bufora w klasie Best Effort
+            >>>C) Kiedy wystąpi natłok i realizowana jest usługa SCS (Stream Classification Service)
+            >>>D) Kiedy wystąpi natłok i pojawi się ramka oznaczona bitem DEI (Drop Eligibility Indicator)
+            
+            [#1] Zaznacz klasy ruchu w standardzie IEEE 802.11e, dla których standard zakłada niezerowe wartości TXOP?
+            >>>A) Voice
+            B) Best Effort
+            C) Background
+            >>>D) Video
+                        
+            [#1] Jakie operacje zdefiniowano w standardzie IEEE 802.11f?
+            >>>A) IAPP-MOVE
+            >>>B) IAPP-CACHE
+            >>>C) IAPP-ADD
+            D) IAPP-UPDATE
+            
+            [#1] Jakie szybkości w stransmisji można uzyskać stosując tryb pracy ERP-PBCC (Packet Binary Convolutional Code) w sieciach standardu IEEE 802.11g?
+            A) 18 Mbit/s
+            >>>B) 22 Mbit/s
+            >>>C) 33 Mbit/s
+            D) 48 Mbit/s
+            
+            [#1] Które klucze w mechanizmie WPA standardu IEEE 802.11i są wyznaczane z klucza MSK (Master Session Key)?
+            A) GMK (Group Master Key)
+            B) GTK (Group Transient Key)
+            C) PTK (Pairwise Transient Key)
+            >>>D) PMK (Pairwise Master Key)
+            
+            [#1] Ile warstw posiada model bezpieczeństwa zdefiniowany przez standard IEEE 802.11i?
+            A) 4 (WLAN layer, Access control layer, Authorization layer, Authentication layer)
+            >>>B) 3 (WLAN layer, Access control layer, Authorization layer)
+            C) 1 (WLAN layer)
+            D) 2 (WLAN layer, Access control layer)
+            
+            [#1] Jakie nowe elementy zostały wprowadzone w standardzie IEEE 802.11n?
+            >>>A) Kanały radiowe o szerokości 40MHz
+            >>>B) Kształtowanie wiązki antenowej
+            >>>C) Agregacja ramek
+            >>>D) Zmianę odstępów ochronnych z 800ns na 400ns
+             
+            [#1] W jakich sytuacjach stacja może na pewno rozpocząć nadawanie, korzystając z algorytmu CBSA w IEEE 802.11aa?
+            >>>A) Kiedy zebrany kredyt jest większy od zera
+            >>>B) Jeżeli kredyt wynosi zero, a kolejka primary jest pusta
+            C) Kiedy zebrany kredyt jest większy od wartości IoCredit
+            D) Kiedy zebrany kredyt jest większy od wartośći hiCredit
+                        
+ 
+            [#1] Wymień funkcje realizowane przez punkt dostępowy AP zgodnie z terminologią stosowaną w standardzie IEEE 802.11?
+            >>>A) Zarządzanie poborem energii poprzez buforowanie danych do zasocjowanych z nim stacji
+            >>>B) Autoryzację użytkowników z odpowiednim obszarem BSA (Basic Service Area)
+            C) Routing pakietów do sieci IEEE 802.3 (Ethernet)
+            D) Skanowanie kanałów radiowych w poszukiwaniu nowych stacji klienckich
+            >>>E) Zapewnienie synchronizacji ze wspólnym zegarem.
+            
+            [#1] Które klasy ruchu w standardzie IEEE 802.11e mają te same parametry okna współzawodnictwa?
+            >>>A) Best Effort
+            B) Video
+            C) Voice
+            >>>D) Background
+            
+            [#1] Które urządzenia sieciowe obliczają klucze DLP Pairwise Master Key w standardzie IEEE 802.11e oraz mechanizmie DLP?
+            A) QSTA 2
+            B) QSTA 1
+            C) QSTA 1, QSTA 2 i AP
+            >>>D) AP
+            
+            [#1] Które dane są potrzebne do odczytania klucza GTK (Group Transient Key) w stacji przy Group Key Handshake i stosowaniu mechanizmu WPA w standardzie 802.11i?
+            A) PMK (Pairwise Master Key)
+            B) Gnonce
+            >>>C) KEK (Key Encryption Key)
+            D) Anonce
+            
+            [#1] Jakie mechanizmy są stosowane do realizacji funkcji integralności danych w mechanizmie WPA2 standardu 802.11i?
+            >>>A) CCMP
+            B) CRC32
+            C) Funkcja mieszająca
+            D) Michael
+            
+            [#1] Które klucze w mechanizmie WPA standardu IEEE 802.11i przechowywane są zarówno w AP jak i stacjach, więc nie ma potrzeby aby je wzajemnie wymieniać?
+            A) KEK (Key Encryption Key)
+            B) GTK (Group Transient Key)
+            >>>C) PTK (Pairwise Transient Key)
+            >>>D) PMK (Pairwise Master Key)
+            
+            [#1] Proces 4-way handshake w mechanizmie WPA standardu IEEE 802.11i jest realizowany z użyciem następujących metod:
+            A) PEAP-PTK
+            B) LEAP-PMK
+            >>>C) EAP-PSK
+            D) EAP-PTK
+
+            [#1] Standard IEEE 802.1x definiuje tzw. kontrolowany i niekontrolowany port dla:
+            A) Authentication Server'a
+            B) Supplicant'a
+            >>>C) Authenticator'a
+            D) Authorization Server'a
+            
+            [#1] Wymień charakterystyczne cechy standardu IEEE 802.11p?
+            A) Tworzenie sieci kratowych
+            >>>B) Zwiększenie poziomu mocy do ponad 500mW
+            >>>C) Praca w kanałach o szerokości 10MHz
+            D) Szyfrowanie ramek zarządzających
+            
+            [#1] Która z wymienionych usług ma najwyższy priorytet w standardzie IEEE 802.11aa?
+            >>>A) Alternate Voice
+            B) Primary Video
+            C) Alternate Video
+            D) Primary Voice
+
+    
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11a:
+            A) Każdy kanał radiowy zajmuje 22 MHz
+            >>>B) Nagłówek PLCP jest nadawany z szybkością transmisji 6Mbit/s
+            >>>C) Kanały radiowe są oddzielone od siebie o 20MHz
+            D) W Europie istnieją maksymalnie 3 nienachodzące na siebie kanały radiowe
+            
+            [#1] Czy koordynator hybrydowy sieci standardu 802.11e może w ramach okresu rywalizacyjnego superramki przypytywać stację z użyciem pollingu?
+            A) Tak pod warunkiem, że nie stosuje mechanizmu RTS/CTS
+            >>>B) Tak
+            C) Tak, pod warunkiem, że nadaje wyłącznie w klasie ruchu 'voice'
+            D) Nie
+
+            [#1] Jakie tryby transmisji zdefiniowane w standardzie 802.11g?
+            >>>A) ERP-DSSS
+            >>>B) ERP-OFDM
+            >>>C) DSSS-OFDM
+            D) DSSS-PBCC
+
+            [#1] Z jakich komponentów składa się sieć kratowa?
+            A) Mesh Repeater
+            B) Mesh Router
+            >>>C) Mesh AP
+            >>>D) Mest STA
+  
+            [#1] Ramka danych warstwy fizycznej FHSS standardu IEEE 802.11:
+            A) Nagłówek PLCP ramki jest zabezpieczony wielomianem generującym stopnia 32
+            >>> B) Zawiera preambułę warstwy fizycznej
+            >>> C) Zawiera w preambule PLCP pole SFD (start Frame Delimiter)
+            D) Jest pozbawiona w preambule PLCP pola synchronizacji
+
+            [#1] Z jaką szybkością transmisji może być nadawana preambuła PLCP w trybie z krótką preambułą sieci standardu IEEE 802.11b?
+            A) 11 Mbit/s
+            B) 2 Mbit/s
+            >>>C) 1 Mbit/s
+            D) 5,5 Mbit/s
+            
+            [#1] Z jaką szybkością transmisji może być nadawany payload w trybie z krótką preambułą sieci standardu IEEE 802.11b?
+            >>>A) 11 Mbit/s
+            >>>B) 2 Mbit/s
+            >>>C) 1 Mbit/s
+            >>>D) 5,5 Mbit/s
+
+            [#1] Jakie nowe elementy zostały wprowadzone w standardzie IEEE 802.11ac?
+            A) Modulację 2048-QAM
+            B) Kanały radiowe o szerokości 40 MHz
+            >>>C) Wsparcie dla MU-MIMO
+            >>>D) Rezerwację kanałów 20 MHz z użyciem ramek RTS/CTS
+            
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11p
+            A) MAC oparty na funkcji HCCA
+            B) Użycie specjalnego identyfikatora ESSID umieszczonego w ramce RTS
+            >>>C) Mechanizm ustawiania dla stacji losowego adresu MAC w celu zapobiegania śledzeniu stacji
+            >>>D) Warstwa fizyczna zgodna ze standardem IEEE 802.11a
+            
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11u:
+            A) Transmisję GCP (Groupcast with Retries)
+            B) Tworzenie sieci kratowych
+            >>>C) Zmniejszenie obciążenia sieci komórkowych tzw. mobile data offloading
+            >>>D) Rozsyłanie przez punkt dostępowy informacji o dostępnych sieciach komórkowych z użyciem jednej ramki rozgłoszeniowej
+            
+            [#1] Z jaką dokładnością mechanizm TPC (Transmit Power Control) standardu IEEE 802.11h umożliwia sterowanie poziomem mocy nadajnika?
+            A) 10dBm
+            >>>B) 0dBm
+            >>>C) 1mW
+            D) 5mW
+            
+            [#1] Jakie raporty może gromadzić punkt dostępowy przy użyciu standardu IEEE 802.11k?
+            >>>>A) Link Measurement Report
+            >>>>B) Medium Sensing Time Histogram Report
+            >>>>C) Beacon Report
+            >>>>D) Channel Load Report
+            
+            [#1] Jakie nowe elementy zostały wprowadzone w standardzie IEEE 802.11ac?
+            >>>>a) kanały radiowe o szerokości 80 MHz
+            >>>>b) multipleksacja przestrzenna do wielkości 8x8
+            >>>>c) dynamiczna rezerwacja zasobów radiowych z użyciem ramek RTS/CTS
+            d) modulacja 128-QAM
+            
+            [#1]  Która z wymienionych usług ma najniższy priorytet w standardzie IEEE 802.11aa?
+            a) Primary Voice
+            b) Primary Video
+            >>>>c) Alternate Video
+            d) Alternate Voice
+            
+            [#1] Jakie rozszerzenie standardu IEEE 802.11 wprowadza mechanizm Dynamic Channel Selection (DCS)?
+            >>>>a) 802.11h
+            b) 802.11aa
+            c) 802.11j
+            d) 802.11p
+
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11ah
+            >>>>a) możliwość użycia stacji przekaźnikowych do realizacji transmisji wieloskokowych
+            b) zastosowanie warstwy fizycznej standardu IEEE 802.11ac [w a/g]
+            >>>>c) wsparcie dla dwukierunkowej rezerwacji TXOP
+            d) ok. 15-krotne zmniejszenie opóźnienia w przełączaniu międzykomórkowym
+            
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11z
+            >>>>a) pozwala na realizację transmisji między stacjami z wykorzystaniem najnowszych rozszerzeń nawet jeżeli inne urządzenia ich nie wspierają
+            b) umożliwia szyfrowanie ramek zarządzających
+            >>>>c) definiuje rozszerzone mechanizmy oszczędzania poboru energii
+            >>>>d) zestawia bezpośrednie połączenie między stacjami z pominięciem transmisji przez AP
+
+            [#1] Z jakich rodzajów modulacji korzysta warstwa fizyczna standardu IEEE 802.11b?
+            >>>a) CCK
+            b) 4-poziomowa GFSK
+            c) 16-QAM
+            d) 4-QAM
+            
+            [#1] Ile priorytetów użytkownika wprowadzono w standardzie IEEE 802.11e?
+            a) 4
+            b) 6
+            c) 2
+            >>>d) 8
+            
+            [#1] Jakie rodzaje agregacji można użyć przy zastosowaniu standardu IEEE 802.11ac?
+            >>>a) A-MSDU w A-MPDU
+            >>>b) A-MPDU
+            c) A-MPDU w A-MSDU
+            >>>d) A-MSDU
+            
+            [#1] W jakim standardzie wprowadzono trzy niezależne techniki transmisyjne: spread spectrum (Control PHY),
+            single carrier SC (Single Carrier PHY) i OFDM (OFDM PHY)?
+            a) IEEE 802.11ax
+            b) IEEE 802.11af
+            >>> c) IEEE 802.11ad
+    
+            [#1] Jakie współczynniki kodowania (coding rate) są stosowane w sieci standardu IEEE 802.11a?
+            >>>a) 1/2
+            >>>b) 3/4
+            c) 1/4
+            >>>d) 2/3
+            
+            [#1] Jakie składowe czasów składają się na wyznaczenie interwału SIFS zdefiniowanego w standardzie IEEE 802.11?
+            a) jednokrotność szczeliny czasowej
+            >>>b) czas przełączania nadajnika/odbiornika (Rx/Tx Turnaround time)
+            >>>c) opóźnienie związane z propagacją sygnału pomiędzy nadajnikiem i odbiornikiem
+            >>>d) czas przetwarzania sygnałów w odbiorniku
+            
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11af
+            >>>a) użycie pasma częstotliwości <1GHz
+            b) obsługa kanałów o szerokości 4MHz
+            >>>c) zastosowanie warstwy fizycznej standardu IEEE 802.11ac
+            >>>d) możliwość agregacji kanałów
+            
+            [#1] Implementacja jakich szybkości transmisji jest obowiązkowa w standardzie IEEE 802.11g?
+            >>>a) 24 Mbit/s
+            b) 48 Mbit/s
+            >>>c) 12 Mbit/s
+            d) 9 Mbit/s
+            >>>e) 6 Mbit/s
+            f) 52 Mbit/s
+
+            [#1] Które usługi multicastowe zdefiniowane w standardzie IEEE 802.11aa korzystają z mechanizmu blokowego potwierdzenia?
+            >>>a) GCR Immediate
+            >>>b) GCR Delayed
+            c) GCR Unsolicited Retry
+            d) DMS
+    
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11aa
+            a) realizacja szybkiego przełączania międzykomórkowego
+            >>>b) zarządzanie OBSS (Overlapping Basic Service Set)
+            >>>c) transmisja GCR (Groupcast with Retries)
+            >>>d) realizacja usługi SCS (Stream Classification Service)
+     
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11b
+            a) kanały są oddzielone od siebie o 6MHz
+            >>>b) w Europie istnieją maksymalnie 3 nienachodzące na siebie kanały radiowe
+            c) w systemie z długą preambułą preambuła jest nadawana z szybkością transmisji 1 Mbit/s, a nagłówek warstwy fizycznej z szybkością transmisji 2
+            >>>d) każdy kanał radiowy zajmuje 22 MHz
+            
+            [#1] Czy okres czasowy AIFS wprowadzony w standardzie IEEE 802.11e może być równy okresowi DIFS
+            >>>a) tak, pod warunkiem, że nadajemy ramkę z danymi w klasie ruchu ‘video’
+            >>>b) tak, pod warunkiem, że nadajemy ramkę z danymi w klasie ruchu ‘voice’
+            c) nie
+            d) tak, pod warunkiem, że nadajemy ramkę z danymi w klasie ruchu ‘best effort’
+            
+            [#1] Jakie nowe elementy zostały wprowadzone w standardzie IEEE 802.11h?
+            >>>a) mechanizm kontroli poziomu mocy TPC (Transmit Power Control)
+            b) mechanizm wykrywania najlepszego punktu dostępowego na podstawie pomiarów
+            c) mechanizm ustawiania dla stacji losowego adresu MAC w celu zapobiegania śledzeniu stacji
+            >>>d) mechanizm dynamicznego wyboru kanałów DCS (Dynamic Channel Selection)
+
+            [#1] Jaki klucz służy do wyznaczania klucza PTK w standardzie IEEE 802.11i?
+            a) KCK
+            b) KEK
+            >>>c) PMK
+            d) GTK
+            
+            [#1] Jaki klucz służy do zabezpieczenia transmisji grupowej w standardzie IEEE 802.11i?
+            >>>a) GTK
+            b) PTK
+            c) PMK
+            d) KCK
+
+            [#1] Jaki protokół jest stosowany do uzgadniania kluczy w mechanizmie WPS standardu IEEE 802.11i?
+            a) Rabina
+            b) Pohliga-Gamala
+            >>>c) Diffiego-Hellmana
+            d) Shamir-Adleman
+     
+            [#1] Które pola ramki są szyfrowane w algorytmie AES-CCMP standardu IEEE 802.11i?
+            a) Header + Payload
+            b) Header + MIC
+            c) Header + Payload + MIC
+            >>>d) Payload + MIC
+
+    
+            [#1] W którym trybie oszczędzania poboru energii możliwa jest transmisja SCO?
+            a) Standby
+            b) Park
+            c) Sniff
+            >>>d) Hold
+
+            [#1] Jaki mechanizm w standardzie IEEE 802.11aa określa sposób wyboru ramki do nadania z kolejek głównej i alternatywnej?
+            a) HCCA
+            b) EDCA
+            c) CSMA
+            >>>d) CBSA
+            
+            [#1] Jaki mechanizm transmisji multicastowej w IEEE 802.11aa jest najbardziej wydajny?
+            a) GCR UR
+            >>>b) GCR Block ACK
+            c) DMS
+            d) Legacy
+            
+            [#1] Która usługa standardu IEEE 802.11aa pozwala odrzucić część ramek w przypadku natłoku?
+            >>>a) SCS
+            b) DMS
+            c) OBSS
+            d) GCR
+            
+            [#1] Jaką dodatkową funkcjonalność realizują ramki RTS/CTS w standardzie IEEE 802.11ac?
+            a) wsparcie dla MU-MIMO
+            b) poprawę działania beamforming
+            >>>c) rezerwację kanałów 20 MHz
+            d) lepszą agregację ramek
+            
+            [#1] Jaka jest najbardziej wydajna modulacja stosowana w standardzie IEEE 802.11ac?
+            a) 64-QAM
+            b) 512-QAM
+            c) 2048-QAM
+            >>>d) 256-QAM
+            
+            [#1] Który rodzaj agregacji w standardzie 802.11ac umieszcza w zagregowanej ramce tylko jeden nagłówek PHY i MAC?
+            >>>a) A-MSDU
+            b) A-MPDU
+            c) A-MPDU w A-MSDU
+            d) A-MSDU w A-MPDU
+            
+            [#1] Ile technik transmisji zdefiniowano w standardzie IEEE 802.11ad?
+            a) 2
+            >>>b) 3
+            c) 4
+            d) 6
+            
+            [#1] Który standard umożliwia użycie kanałów o szerokości 7 MHz?
+            a) IEEE 802.11ac
+            b) IEEE 802.11ad
+            c) IEEE 802.11ah
+            >>>d) IEEE 802.11af
+            
+            [#1] Jaka jest nowa funkcja wprowadzona przez standard IEEE 802.11ax?
+            a) szerokość kanału 6 MHz
+            >>>b) kolorowanie BSS
+            c) łączenie kanałów
+            d) dwukierunkowy okres TXOP
+
+            [#1]  Z jakich rodzajów modulacji korzysta warstwa fizyczna standardu IEEE 802.11a?
+            a) 256-QAM
+            b) 4-PPM
+            >>>c) BPSK
+            >>>d) 64-QAM
+
+            [#1] Jaki mechanizm został wprowadzony w IEEE 802.11e?
+            a) Tryb transmisji Sts 'Station to Station
+            b) Blokowe zapytania
+            >>>c) Okres TXOP (Transmission Opportunity)
+            d) Fragmentacja
+
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11ba (Wake-up Radio)
+            >>>A) budzenie się stacji z użyciem zewnętrznego odbiornika radiowego, który informuje stację o zbuforowanych danych
+            B) cykliczne budzenie się stacji w celu sprawdzenia, czy są do niej zbuforowane dane
+            C) budzenie się stacji z użyciem zewnętrznego transceivera radiowego, który dodatkowo informuje AP, że może już wysłać dane
+            >>>D) użycie prostej modulacji On-Off-Keying (OOK)
+
+            [#1] Wymień cechy charakterystyczne standardu IEEE 802.11ay pracującego w paśmie 60GHz:
+            >>>A) łączenie kanałów
+            >>>B) MU-MIMO
+            >>>C) użycie kanału radiowego o szerokości 8,64 GHz
+            D) użycie protokołu dostępu do kanału radiowego ECCA
+
+            [#1] Na czym polega technika multi-link stosowana w standardzie IEEE 802.11be?
+            >>>A) Na zmniejszeniu opóźnienia dostępu do kanału poprzez wybór pierwszego wolnego łącza do transmisji
+            B) Na równoczesnej transmisji danych do dwóch różnych punktów dostępowych
+            >>>C) Na podniesieniu niezawodności transmisji poprzez dwukrotne wysyłanie tych samych ramek
+            D) Na możliwości równoczesnego użycia pasm częstotliwości 5 GHz i 6 GHz
+
+            [#1] Standard IEEE 802.11bc realizujący usługi EBC
+            A) W celu zapewnienia bezpieczeństwa wymaga uwierzytelnienia i asocjacji z każdym urządzeniem IoT
+            >>>B) Umożliwia strumieniowanie usługi video do dużej liczby gęsto rozmieszczonych stacji, które nie posiadają funkcji nadawania ramek
+            C) Umożliwia pomiar odległości, kąta i prędkości przemieszczania się
+            >>>D) Umożliwia realizację transmisji od urządzeń IoT o małym poborze mocy będących w ruchu bez konieczności skanowania i asocjacji
+
+
+            [#1] Nagłówek której ramki oznacza ramkę standardu IEEE 802.11ac?
+            A) | L-STF | L-LTF | L-SIG | RL-SIG | HE-SIG-A 
+            >>>B) | L-STF | L-LTF | L-SIG | VHT-SIG1 | VHT-SIG2
+            C) | L-STF | L-LTF | L-SIG | BPSK Mark 1 | BPSK Mark 2 
+            D) | L-STF | L-LTF | L-SIG | HT-SIG1 | HT-SIG2 
+
+        
+            
+
+
+`;
+
+            // --- LOGIKA APLIKACJI ---
+
+            function cleanText(text) {
+                return text
+                    .replace(/lambda/gi, "λ")
+                    .replace(/deg/gi, "°")
+                    .replace(/sqrt/gi, "√")
+                    .replace(/ohm/gi, "Ω")
+                    .replace(/alpha/gi, "α")
+                    .replace(/beta/gi, "β");
+            }
+
+            // Fisher-Yates shuffle
+            function shuffleArray(array) {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+
+            function parseData(data) {
+                const questions = [];
+                // Split by [#1] marker
+                const blocks = data
+                    .split(/\[#1\]/)
+                    .filter((x) => x.trim().length > 0);
+
+                console.group("📋 PARSOWANIE PYTAŃ - RAPORT");
+                console.log(`Znaleziono ${blocks.length} bloków [Q]`);
+
+                blocks.forEach((content, idx) => {
+                    const blockNum = idx + 1;
+                    const previewText =
+                        content.substring(0, 80).replace(/\n/g, " ").trim() +
+                        "...";
+
+                    // Check for explanation (after :: separator)
+                    let mainContent = content;
+                    let explanation = "";
+                    const explanationMatch = content.split(/\n::\s*/);
+                    if (explanationMatch.length > 1) {
+                        mainContent = explanationMatch[0];
+                        explanation = cleanText(
+                            explanationMatch.slice(1).join("\n").trim(),
+                        );
+                    }
+
+                    // Split content into Question and Answers
+                    // Find first occurrence of A) or a) - POPRAWIONE REGEX
+                    // Obsługuje: a), >>a), >>>a), >a), >>>>a) itd.
+                    const match = mainContent.match(
+                        /(\n|^)\s*(>{1,4})?\s*[a-zA-Z]\)/,
+                    );
+                    if (!match) {
+                        console.warn(
+                            `⚠️ Blok #${blockNum} POMINIĘTY - brak odpowiedzi (nie znaleziono wzorca "a)" lub ">>>a)")`,
+                        );
+                        console.warn(`   Treść: "${previewText}"`);
+                        console.warn(
+                            `   Pełna treść bloku:`,
+                            mainContent.substring(0, 300),
+                        );
+                        return;
+                    }
+
+                    // ZACHOWAJ PRZEJŚCIA DO NOWEJ LINII W PYTANIU
+                    const qText = mainContent.substring(0, match.index);
+                    // Usuń puste linie na początku i końcu, ale zachowaj wewnętrzne przejścia
+                    const qTextClean = qText
+                        .replace(/^\s*\n/, "")
+                        .replace(/\n\s*$/, "");
+
+                    const answersBlock = mainContent.substring(match.index);
+
+                    const answers = [];
+                    const skippedLines = [];
+
+                    // NOWY ALGORYTM: Łączy wieloliniowe odpowiedzi
+                    // Regex do wykrycia początku odpowiedzi: opcjonalne > + litera + )
+                    const answerStartRegex = /^(>{0,4})\s*([a-zA-Z])\)/;
+
+                    const lines = answersBlock.split(/\n/);
+                    let currentAnswer = null;
+
+                    lines.forEach((line, lineIdx) => {
+                        const trimmedLine = line.trim();
+                        if (trimmedLine.length === 0) {
+                            // Pusta linia - NIE dodawaj przejścia do nowej linii
+                            // (puste linie są separatorami między odpowiedziami, nie częścią odpowiedzi)
+                            return;
+                        }
+
+                        const answerMatch = trimmedLine.match(answerStartRegex);
+
+                        if (answerMatch) {
+                            // To jest początek nowej odpowiedzi
+                            // Zapisz poprzednią odpowiedź jeśli istnieje (po usunięciu trailing whitespace)
+                            if (currentAnswer !== null) {
+                                currentAnswer.text = currentAnswer.text.replace(
+                                    /\s+$/,
+                                    "",
+                                );
+                                answers.push(currentAnswer);
+                            }
+
+                            const arrows = answerMatch[1];
+                            const isCorrect = arrows.length >= 2; // >> lub więcej = poprawna
+                            const answerText = trimmedLine
+                                .replace(answerStartRegex, "")
+                                .trim();
+
+                            currentAnswer = {
+                                text: cleanText(answerText),
+                                correct: isCorrect,
+                                originalLine: trimmedLine,
+                            };
+                        } else if (
+                            currentAnswer !== null &&
+                            !trimmedLine.startsWith("::")
+                        ) {
+                            // To jest kontynuacja poprzedniej odpowiedzi (wieloliniowa)
+                            // Zachowaj przejście do nowej linii
+                            currentAnswer.text += "\n" + cleanText(trimmedLine);
+                            currentAnswer.originalLine += "\n" + trimmedLine;
+                        } else if (
+                            trimmedLine.length > 3 &&
+                            !trimmedLine.startsWith("::")
+                        ) {
+                            // Linia przed pierwszą odpowiedzią lub po komentarzu
+                            skippedLines.push({ lineIdx, line: trimmedLine });
+                        }
+                    });
+
+                    // Dodaj ostatnią odpowiedź (po usunięciu trailing whitespace)
+                    if (currentAnswer !== null) {
+                        currentAnswer.text = currentAnswer.text.replace(
+                            /\s+$/,
+                            "",
+                        );
+                        answers.push(currentAnswer);
+                    }
+
+                    if (answers.length === 0) {
+                        console.warn(
+                            `⚠️ Blok #${blockNum} POMINIĘTY - nie znaleziono żadnych odpowiedzi`,
+                        );
+                        console.warn(`   Treść pytania: "${previewText}"`);
+                        console.warn(
+                            `   Blok odpowiedzi:`,
+                            answersBlock.substring(0, 200),
+                        );
+                        return;
+                    }
+
+                    const correctAnswers = answers.filter((a) => a.correct);
+                    if (correctAnswers.length === 0) {
+                        console.warn(
+                            `⚠️ Blok #${blockNum} - BRAK POPRAWNYCH ODPOWIEDZI (brak >> lub >>> przed odpowiedzią)`,
+                        );
+                        console.warn(`   Treść: "${previewText}"`);
+                        console.warn(
+                            `   Znalezione odpowiedzi:`,
+                            answers.map((a) => a.originalLine.substring(0, 50)),
+                        );
+                    }
+
+                    if (skippedLines.length > 0) {
+                        console.info(
+                            `ℹ️ Blok #${blockNum} - pominięte linie (komentarze?):`,
+                            skippedLines,
+                        );
+                    }
+
+                    // Shuffle answers
+                    const shuffledAnswers = shuffleArray(answers);
+                    // Assign new letters A, B, C...
+                    shuffledAnswers.forEach((ans, i) => {
+                        ans.id = String.fromCharCode(65 + i); // A, B, C, D...
+                    });
+
+                    questions.push({
+                        text: cleanText(qTextClean), // Zachowuje przejścia do nowej linii
+                        answers: shuffledAnswers,
+                        type:
+                            shuffledAnswers.filter((a) => a.correct).length > 1
+                                ? "multi"
+                                : "single",
+                        explanation: explanation,
+                        blockNumber: blockNum,
+                    });
+
+                    console.log(
+                        `✅ Blok #${blockNum} OK - ${answers.length} odp., ${correctAnswers.length} poprawnych, typ: ${questions[questions.length - 1].type}`,
+                    );
+                });
+
+                console.log(`\n📊 PODSUMOWANIE PARSOWANIA:`);
+                console.log(`   Bloków [Q]: ${blocks.length}`);
+                console.log(`   Sparsowanych pytań: ${questions.length}`);
+                console.log(
+                    `   Pominiętych: ${blocks.length - questions.length}`,
+                );
+
+                // POPRAWIONE: Usuwanie duplikatów na podstawie tytułu ORAZ odpowiedzi
+                // Jeśli chociaż jedna odpowiedź się różni - pytanie jest unikalne
+                const uniqueQuestions = [];
+                const seenSignatures = new Set();
+                const duplicates = [];
+
+                questions.forEach((q) => {
+                    // Twórz sygnaturę z tytułu + posortowanych odpowiedzi
+                    const titlePart = q.text
+                        .toLowerCase()
+                        .replace(/\s+/g, " ")
+                        .trim();
+                    const answersPart = q.answers
+                        .map((a) =>
+                            a.text.toLowerCase().replace(/\s+/g, " ").trim(),
+                        )
+                        .sort()
+                        .join("|");
+                    const signature = titlePart + "|||" + answersPart;
+
+                    if (!seenSignatures.has(signature)) {
+                        seenSignatures.add(signature);
+                        uniqueQuestions.push(q);
+                    } else {
+                        duplicates.push({
+                            blockNumber: q.blockNumber,
+                            text: q.text.substring(0, 60),
+                        });
+                    }
+                });
+
+                if (duplicates.length > 0) {
+                    console.log(
+                        `\n🔄 DUPLIKATY (usunięte - identyczny tytuł I odpowiedzi):`,
+                    );
+                    duplicates.forEach((d) =>
+                        console.log(
+                            `   Blok #${d.blockNumber}: "${d.text}..."`,
+                        ),
+                    );
+                }
+
+                console.log(
+                    `\n✨ FINALNA LICZBA PYTAŃ: ${uniqueQuestions.length}`,
+                );
+                console.groupEnd();
+
+                // Shuffle questions order
+                return shuffleArray(uniqueQuestions);
+            }
+
+            // Funkcja pomocnicza do konwersji tekstu z \n na <br> dla HTML
+            function textToHtml(text) {
+                return text
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/\n/g, "<br>");
+            }
+
+            let allQuestions = [];
+            let totalScore = 0;
+            let answeredCount = 0;
+
+            function renderQuiz() {
+                allQuestions = parseData(rawData);
+                const container = document.getElementById("quiz-container");
+                container.innerHTML = "";
+
+                document.getElementById("progress").innerText =
+                    `Pytania: 0 / ${allQuestions.length}`;
+
+                // Inicjalizacja licznika punktów
+                document.getElementById("points").innerText = "0";
+                document.getElementById("max-points").innerText = allQuestions.length;
+
+                allQuestions.forEach((q, index) => {
+                    const card = document.createElement("div");
+                    card.className = "question-card";
+                    card.id = `q-card-${index}`;
+
+                    const inputType = q.type === "multi" ? "checkbox" : "radio";
+                    const typeLabel =
+                        q.type === "multi" ? "(Wielokrotny wybór)" : "";
+
+                    let answersHtml = "";
+                    q.answers.forEach((ans, aIndex) => {
+                        // Zachowuje przejścia do nowej linii w odpowiedziach
+                        answersHtml += `
+                <label class="option-btn" id="lbl-${index}-${aIndex}">
+                    <input type="${inputType}" name="q${index}" value="${aIndex}">
+                    <span><b>${ans.id})</b> ${textToHtml(ans.text)}</span>
+                </label>
+            `;
+                    });
+
+                    // Zmieniono: dodano przycisk "Sprawdź" widoczny od razu
+                    // Dodano przycisk wyjaśnienia jeśli istnieje
+                    let explanationHtml = "";
+                    if (q.explanation) {
+                        explanationHtml = `
+                <div class="explanation-container" id="expl-container-${index}" style="display: none;">
+                    <button class="show-explanation-btn" onclick="toggleExplanation(${index})">💡 Pokaż wyjaśnienie</button>
+                    <div class="explanation-text hidden" id="expl-text-${index}">${q.explanation}</div>
+                </div>
+            `;
+                    }
+
+                    card.innerHTML = `
+            <div class="q-header">
+                <span>Pytanie ${index + 1}</span>
+                <span>${typeLabel}</span>
+            </div>
+            <div class="q-text">${textToHtml(q.text)}</div>
+            <div class="options-grid">
+                ${answersHtml}
+            </div>
+            <div class="actions">
+                <button class="check-btn" id="btn-check-${index}" onclick="checkAnswer(${index})">Sprawdź</button>
+            </div>
+            ${explanationHtml}
+        `;
+                    container.appendChild(card);
+                });
+            }
+
+            function checkAnswer(qIndex) {
+                const q = allQuestions[qIndex];
+                const card = document.getElementById(`q-card-${qIndex}`);
+                const inputs = document.querySelectorAll(
+                    `input[name="q${qIndex}"]`,
+                );
+                const btn = document.getElementById(`btn-check-${qIndex}`);
+
+                let allCorrect = true;
+                let anySelected = false;
+
+                // Najpierw sprawdzamy czy cokolwiek zaznaczono
+                inputs.forEach((input) => {
+                    if (input.checked) anySelected = true;
+                });
+
+                if (!anySelected) return; // Jeśli nic nie zaznaczono, nie sprawdzaj
+
+                inputs.forEach((input) => {
+                    const ansIndex = parseInt(input.value);
+                    const label = document.getElementById(
+                        `lbl-${qIndex}-${ansIndex}`,
+                    );
+                    const isCorrect = q.answers[ansIndex].correct;
+
+                    // Reset styles
+                    label.classList.remove(
+                        "is-correct",
+                        "is-wrong",
+                        "should-be",
+                    );
+
+                    if (input.checked) {
+                        if (isCorrect) {
+                            label.classList.add("is-correct");
+                        } else {
+                            label.classList.add("is-wrong");
+                            allCorrect = false;
+                        }
+                    }
+
+                    // Blokujemy zmianę odpowiedzi po sprawdzeniu
+                    input.disabled = true;
+                    label.classList.add("disabled");
+                });
+
+                // Show missing correct answers
+                inputs.forEach((input) => {
+                    const ansIndex = parseInt(input.value);
+                    const label = document.getElementById(
+                        `lbl-${qIndex}-${ansIndex}`,
+                    );
+                    const isCorrect = q.answers[ansIndex].correct;
+
+                    if (isCorrect && !input.checked) {
+                        label.classList.add("should-be");
+                        allCorrect = false;
+                    }
+                });
+
+                // Obliczanie wyniku zgodnie z nowymi zasadami
+                let score = 0;
+                if (q.type === "multi") {
+                    const correctAnswersCount = q.answers.filter((a) => a.correct).length;
+                    let correctChecked = 0;
+                    let incorrectChecked = 0;
+
+                    inputs.forEach((input) => {
+                        const ansIndex = parseInt(input.value);
+                        const isCorrect = q.answers[ansIndex].correct;
+                        if (input.checked) {
+                            if (isCorrect) {
+                                correctChecked++;
+                            } else {
+                                incorrectChecked++;
+                            }
+                        }
+                    });
+
+                    if (correctAnswersCount > 0) {
+                        score = Math.max(0, (correctChecked - incorrectChecked) / correctAnswersCount);
+                    }
+                } else {
+                    // Pojedynczy wybór
+                    let gotItRight = false;
+                    inputs.forEach((input) => {
+                        const ansIndex = parseInt(input.value);
+                        const isCorrect = q.answers[ansIndex].correct;
+                        if (input.checked && isCorrect) {
+                            gotItRight = true;
+                        }
+                    });
+                    score = gotItRight ? 1 : 0;
+                }
+                q.score = score;
+
+                // Nadanie odpowiednich klas wizualnych
+                if (q.score === 1) {
+                    card.classList.add("correct");
+                    card.classList.remove("wrong", "partial");
+                } else if (q.score > 0) {
+                    card.classList.add("partial");
+                    card.classList.remove("correct", "wrong");
+                } else {
+                    card.classList.add("wrong");
+                    card.classList.remove("correct", "partial");
+                }
+
+                // Dodanie informacji o punktacji do nagłówka pytania
+                const qHeaderSpan = card.querySelector('.q-header span:first-child');
+                if (qHeaderSpan) {
+                    let scoreColor = 'var(--error)';
+                    if (q.score === 1) {
+                        scoreColor = 'var(--success)';
+                    } else if (q.score > 0) {
+                        scoreColor = 'var(--warning)';
+                    }
+                    const formattedScore = Number(q.score.toFixed(2));
+                    qHeaderSpan.innerHTML += ` <span style="color: ${scoreColor}; font-weight: bold;">(${formattedScore}/1 pkt)</span>`;
+                }
+
+                // Ukrywamy przycisk po sprawdzeniu
+                btn.style.display = "none";
+
+                // Pokazujemy kontener z wyjaśnieniem (jeśli istnieje)
+                const explContainer = document.getElementById(
+                    `expl-container-${qIndex}`,
+                );
+                if (explContainer) {
+                    explContainer.style.display = "block";
+                }
+
+                updateScore();
+            }
+
+            function showSummary() {
+                const summaryContainer = document.getElementById("summary-container");
+                const summaryList = document.getElementById("summary-list");
+                summaryList.innerHTML = "";
+
+                // Filtrujemy pytania z wynikiem < 1 (błędne i częściowe)
+                const failedQuestions = allQuestions
+                    .filter(q => q.score !== undefined && q.score < 1)
+                    // Sortujemy od 0 pkt (najmniej) do wyższych wartości rosnąco
+                    .sort((a, b) => a.score - b.score);
+
+                if (failedQuestions.length === 0) {
+                    summaryContainer.classList.add("hidden");
+                    return;
+                }
+
+                failedQuestions.forEach((q) => {
+                    const qIndex = allQuestions.indexOf(q);
+                    const item = document.createElement("div");
+                    item.className = "summary-item";
+                    item.style.borderBottom = "1px solid var(--border)";
+                    item.style.padding = "15px 0";
+                    item.style.marginBottom = "10px";
+
+                    let scoreColor = 'var(--error)';
+                    if (q.score > 0) scoreColor = 'var(--warning)';
+
+                    let answersHtml = "";
+                    q.answers.forEach((ans, aIdx) => {
+                        const isCorrect = ans.correct;
+                        const inputElement = document.querySelector(`input[name="q${qIndex}"][value="${aIdx}"]`);
+                        const wasChecked = inputElement ? inputElement.checked : false;
+
+                        let statusSymbol = "";
+                        let textColor = "var(--text-main)";
+                        if (isCorrect) {
+                            statusSymbol = "✔️ (powinna być zaznaczona)";
+                            textColor = "#86efac";
+                        } else if (wasChecked) {
+                            statusSymbol = "❌ (błędnie zaznaczona)";
+                            textColor = "#fca5a5";
+                        }
+
+                        const boxSymbol = q.type === "multi" ? (wasChecked ? "☑️" : "⬜") : (wasChecked ? "🔘" : "⚪");
+
+                        answersHtml += `
+                            <div style="margin-left: 15px; color: ${textColor}; margin-top: 5px;">
+                                ${boxSymbol} <b>${ans.id})</b> ${textToHtml(ans.text)} ${statusSymbol ? `<span style="font-size: 0.85rem; opacity: 0.85;">${statusSymbol}</span>` : ""}
+                            </div>
+                        `;
+                    });
+
+                    item.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 8px;">
+                            Pytanie ${qIndex + 1} <span style="color: ${scoreColor}; font-weight: bold;">(${Number(q.score.toFixed(2))}/1 pkt)</span>
+                        </div>
+                        <div style="margin-bottom: 10px; font-weight: 500; white-space: pre-wrap;">${textToHtml(q.text)}</div>
+                        <div class="summary-answers">${answersHtml}</div>
+                    `;
+                    summaryList.appendChild(item);
+                });
+
+                summaryContainer.classList.remove("hidden");
+                summaryContainer.scrollIntoView({ behavior: "smooth" });
+            }
+
+            function toggleExplanation(qIndex) {
+                const explText = document.getElementById(`expl-text-${qIndex}`);
+                const btn = document.querySelector(
+                    `#expl-container-${qIndex} .show-explanation-btn`,
+                );
+
+                if (explText.classList.contains("hidden")) {
+                    explText.classList.remove("hidden");
+                    btn.textContent = "🔽 Ukryj wyjaśnienie";
+                } else {
+                    explText.classList.add("hidden");
+                    btn.textContent = "💡 Pokaż wyjaśnienie";
+                }
+            }
+
+            // Poprawiona funkcja zliczania wyników z sumowaniem punktów cząstkowych
+            function updateScore() {
+                let totalScore = 0;
+                let attempted = 0;
+
+                allQuestions.forEach((q) => {
+                    if (q.score !== undefined) {
+                        totalScore += q.score;
+                        attempted++;
+                    }
+                });
+
+                const percent =
+                    attempted === 0
+                        ? 0
+                        : Math.round((totalScore / attempted) * 100);
+                document.getElementById("score").innerText = percent;
+                document.getElementById("points").innerText = Number(totalScore.toFixed(2));
+                document.getElementById("progress").innerText =
+                    `Odpowiedziano: ${attempted} / ${allQuestions.length}`;
+
+                if (attempted === allQuestions.length) {
+                    showSummary();
+                }
+            }
+
+            function resetQuiz() {
+                renderQuiz();
+                document.getElementById("score").innerText = "0";
+                document.getElementById("summary-container").classList.add("hidden");
+                window.scrollTo(0, 0);
+            }
+
+            // Start
+            renderQuiz();
+        </script>
+    
+
+</body></html>
